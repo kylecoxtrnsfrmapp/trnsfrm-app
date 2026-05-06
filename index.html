@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>TRNSFRM</title>
+
+  <!-- Fonts: Inter for body, Space Grotesk for display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans:    ['Inter', 'system-ui', 'sans-serif'],
+            display: ['"Space Grotesk"', 'Inter', 'system-ui', 'sans-serif'],
+          },
+        }
+      }
+    };
+  </script>
+
+  <!-- React 18 -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <!-- Babel standalone (JSX transform) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: #000; color: #fff; min-height: 100vh; }
+    body { font-family: 'Inter', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
+    ::-webkit-scrollbar { display: none; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .screen-enter { animation: fadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.35; }
+      50%      { opacity: 0.85; }
+    }
+
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .answer-card { transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease; }
+    .answer-card:active:not(.selected) { transform: scale(0.985); }
+
+    .progress-fill { transition: width 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
+  </style>
+</head>
+
+<body class="bg-black">
+  <!-- Loading state visible before React mounts -->
+  <div id="loading" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;">
+    <span style="font-size:11px;letter-spacing:0.25em;color:rgba(255,255,255,0.2);font-family:Inter,system-ui,sans-serif;text-transform:uppercase;">TRNSFRM</span>
+  </div>
+
+  <div id="root"></div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       APP SOURCE (Babel compiles JSX at runtime)
+  ═══════════════════════════════════════════════════════════════ -->
+  <script type="text/babel" data-presets="react">
+
+    const { useState, useEffect, useCallback } = React;
+
+    // ─────────────────────────────────────────────────────────────
+    // DATA ▸ QUESTIONS
+    // Each answer carries point values for all four lanes.
+    // ─────────────────────────────────────────────────────────────
+
+    const QUESTIONS = [
+      {
+        id: 1,
+        text: "What drives you to train?",
+        answers: [
+          { text: "Build muscle and reshape my physique",                  scores: { Builder: 3, Endurer: 0, Hybrid: 1, Competitor: 0 } },
+          { text: "Run faster and test my endurance",                      scores: { Builder: 0, Endurer: 3, Hybrid: 1, Competitor: 0 } },
+          { text: "Become strong, fast, and capable in every area",        scores: { Builder: 1, Endurer: 1, Hybrid: 3, Competitor: 0 } },
+          { text: "Train to compete — and win for sport",                  scores: { Builder: 0, Endurer: 1, Hybrid: 1, Competitor: 3 } },
+        ],
+      },
+      {
+        id: 2,
+        text: "Pick your ideal training session.",
+        answers: [
+          { text: "Heavy compound lifts with structured rest periods",  scores: { Builder: 3, Endurer: 0, Hybrid: 1, Competitor: 1 } },
+          { text: "A long run, ride, or swim at a steady pace",         scores: { Builder: 0, Endurer: 3, Hybrid: 1, Competitor: 0 } },
+          { text: "Circuits — strength and cardio in the same session", scores: { Builder: 1, Endurer: 1, Hybrid: 3, Competitor: 1 } },
+          { text: "Sport drills and position-specific practice",        scores: { Builder: 0, Endurer: 0, Hybrid: 1, Competitor: 3 } },
+        ],
+      },
+      {
+        id: 3,
+        text: "What does progress look like to you?",
+        answers: [
+          { text: "Visible muscle growth and heavier lifts",            scores: { Builder: 3, Endurer: 0, Hybrid: 1, Competitor: 1 } },
+          { text: "Faster splits and longer distances",                 scores: { Builder: 0, Endurer: 3, Hybrid: 0, Competitor: 1 } },
+          { text: "Improving across multiple fitness metrics",          scores: { Builder: 1, Endurer: 1, Hybrid: 3, Competitor: 1 } },
+          { text: "Outperforming opponents on the field or court",      scores: { Builder: 0, Endurer: 0, Hybrid: 1, Competitor: 3 } },
+        ],
+      },
+      {
+        id: 4,
+        text: "How do you treat rest days?",
+        answers: [
+          { text: "Critical — recovery is where the growth happens",   scores: { Builder: 3, Endurer: 1, Hybrid: 1, Competitor: 1 } },
+          { text: "I still go — easy cardio or a long walk",           scores: { Builder: 0, Endurer: 3, Hybrid: 1, Competitor: 0 } },
+          { text: "Light movement, mobility, or active recovery",       scores: { Builder: 1, Endurer: 1, Hybrid: 3, Competitor: 1 } },
+          { text: "Skill work, film review, or position training",      scores: { Builder: 0, Endurer: 0, Hybrid: 1, Competitor: 3 } },
+        ],
+      },
+      {
+        id: 5,
+        text: "What's your relationship with cardio?",
+        answers: [
+          { text: "I do it sparingly to support my lifting",           scores: { Builder: 3, Endurer: 0, Hybrid: 1, Competitor: 1 } },
+          { text: "It's the main event — it's why I train",            scores: { Builder: 0, Endurer: 3, Hybrid: 1, Competitor: 0 } },
+          { text: "I genuinely love both lifting and cardio",          scores: { Builder: 1, Endurer: 1, Hybrid: 3, Competitor: 1 } },
+          { text: "Conditioning specific to my sport and position",    scores: { Builder: 1, Endurer: 1, Hybrid: 1, Competitor: 3 } },
+        ],
+      },
+      {
+        id: 6,
+        text: "Which athlete do you identify with most?",
+        answers: [
+          { text: "A bodybuilder or powerlifter",                      scores: { Builder: 3, Endurer: 0, Hybrid: 1, Competitor: 1 } },
+          { text: "A marathon runner or triathlete",                   scores: { Builder: 0, Endurer: 3, Hybrid: 0, Competitor: 1 } },
+          { text: "A CrossFit competitor or obstacle course racer",    scores: { Builder: 1, Endurer: 1, Hybrid: 3, Competitor: 1 } },
+          { text: "A professional team or combat sport athlete",       scores: { Builder: 0, Endurer: 0, Hybrid: 1, Competitor: 3 } },
+        ],
+      },
+      {
+        id: 7,
+        text: "What would training failure look like to you?",
+        answers: [
+          { text: "Getting smaller or losing strength gains",          scores: { Builder: 3, Endurer: 0, Hybrid: 1, Competitor: 0 } },
+          { text: "Losing my endurance base or pace",                  scores: { Builder: 0, Endurer: 3, Hybrid: 1, Competitor: 0 } },
+          { text: "Burning out from imbalanced, one-sided training",   scores: { Builder: 1, Endurer: 1, Hybrid: 3, Competitor: 1 } },
+          { text: "Underperforming when competition is on the line",   scores: { Builder: 0, Endurer: 1, Hybrid: 1, Competitor: 3 } },
+        ],
+      },
+    ];
+
+    // ─────────────────────────────────────────────────────────────
+    // DATA ▸ LANE DEFINITIONS
+    // ─────────────────────────────────────────────────────────────
+
+    const LANES = {
+      Builder: {
+        key:         'Builder',
+        label:       'The Builder',
+        tagline:     'Strength is your identity.',
+        description: 'You train to build. Muscle, physique, and raw strength are your metrics. You thrive under iron and show up to prove what consistent, intentional work looks like over time.',
+        program:     'Hypertrophy',
+        selectLabel: 'Hypertrophy',
+        selectSub:   'Muscle growth · Strength · Body composition',
+      },
+      Endurer: {
+        key:         'Endurer',
+        label:       'The Endurer',
+        tagline:     'You were built for the long run.',
+        description: 'You outlast. Endurance is your edge and the finish line is your obsession. You find clarity in sustained effort and discover your truest self somewhere deep in the miles.',
+        program:     'Endurance',
+        selectLabel: 'Running',
+        selectSub:   'Aerobic capacity · Pace · Distance',
+      },
+      Hybrid: {
+        key:         'Hybrid',
+        label:       'The Hybrid',
+        tagline:     'Refuse to choose. Excel at both.',
+        description: 'You want it all — strength, conditioning, and versatility. You thrive across disciplines and your greatest asset is showing up capable for any challenge thrown at you.',
+        program:     'Hybrid Performance',
+        selectLabel: 'Hybrid',
+        selectSub:   'Balanced strength · Conditioning · Versatility',
+      },
+      Competitor: {
+        key:         'Competitor',
+        label:       'The Competitor',
+        tagline:     'Everything trains toward winning.',
+        description: 'Sport is your arena. You train to perform, to compete, to dominate. Every rep, every drill, every session is preparation for the moment that actually counts.',
+        program:     'Sport Specific',
+        selectLabel: 'Sport Specific',
+        selectSub:   'Power · Speed · Sport performance',
+      },
+    };
+
+    // ─────────────────────────────────────────────────────────────
+    // DATA ▸ PROGRAMS (static weekly structures)
+    // ─────────────────────────────────────────────────────────────
+
+    const PROGRAMS = {
+      Builder: {
+        title:       'Hypertrophy Program',
+        description: 'A 6-day push/pull/legs split engineered for maximum muscle stimulus, progressive overload, and strategic recovery.',
+        days: [
+          { num: '01', label: 'Push',  detail: 'Chest · Shoulders · Triceps' },
+          { num: '02', label: 'Pull',  detail: 'Back · Biceps · Rear Delts' },
+          { num: '03', label: 'Legs',  detail: 'Quads · Hamstrings · Glutes' },
+          { num: '04', label: 'Push',  detail: 'Volume & Accessory Focus' },
+          { num: '05', label: 'Pull',  detail: 'Volume & Accessory Focus' },
+          { num: '06', label: 'Legs',  detail: 'Posterior Chain Emphasis' },
+          { num: '07', label: 'Rest',  detail: 'Recovery & Deload' },
+        ],
+      },
+      Endurer: {
+        title:       'Endurance Program',
+        description: 'A progressive 5-day running structure designed to build aerobic base, sharpen threshold pace, and prepare you for race-day performance.',
+        days: [
+          { num: '01', label: 'Easy Run',         detail: '45–60 min · Conversational pace' },
+          { num: '02', label: 'Interval Training', detail: 'Track or treadmill · Speed work' },
+          { num: '03', label: 'Cross Training',   detail: 'Bike · Swim · Row' },
+          { num: '04', label: 'Tempo Run',        detail: '30–40 min · Threshold pace' },
+          { num: '05', label: 'Rest',             detail: 'Full recovery' },
+          { num: '06', label: 'Long Run',         detail: '75–120 min · Easy effort' },
+          { num: '07', label: 'Rest',             detail: 'Mobility & Restoration' },
+        ],
+      },
+      Hybrid: {
+        title:       'Hybrid Performance Program',
+        description: 'A 6-day program blending strength, conditioning, and aerobic development — built for athletes who refuse to specialise in weakness.',
+        days: [
+          { num: '01', label: 'Strength',         detail: 'Upper Body · Compound Lifts' },
+          { num: '02', label: 'Conditioning',     detail: 'Intervals · MetCon' },
+          { num: '03', label: 'Strength',         detail: 'Lower Body · Posterior Chain' },
+          { num: '04', label: 'Active Recovery',  detail: 'Mobility · Zone 2 Cardio' },
+          { num: '05', label: 'MetCon',           detail: 'High intensity · Mixed modal' },
+          { num: '06', label: 'Long Aerobic',     detail: 'Easy effort · 60–90 min' },
+          { num: '07', label: 'Rest',             detail: 'Full recovery' },
+        ],
+      },
+      Competitor: {
+        title:       'Sport Specific Program',
+        description: 'A 6-day performance program structured around sport practice, speed and power development, and competition preparation.',
+        days: [
+          { num: '01', label: 'Sport Practice',  detail: 'Skill & Tactical Development' },
+          { num: '02', label: 'Speed & Power',   detail: 'Plyometrics · Sprint Work' },
+          { num: '03', label: 'Strength',        detail: 'Olympic Lifts · Compound Movements' },
+          { num: '04', label: 'Recovery',        detail: 'Mobility · Film · Light Skill Work' },
+          { num: '05', label: 'Sport Practice',  detail: 'Live Reps · Scrimmage' },
+          { num: '06', label: 'Conditioning',    detail: 'Sport-specific energy systems' },
+          { num: '07', label: 'Rest',            detail: 'Full recovery' },
+        ],
+      },
+    };
+
+    // ─────────────────────────────────────────────────────────────
+    // SCORING LOGIC
+    // ─────────────────────────────────────────────────────────────
+
+    function calculateResults(answers) {
+      const totals = { Builder: 0, Endurer: 0, Hybrid: 0, Competitor: 0 };
+
+      answers.forEach(({ scores }) => {
+        Object.entries(scores).forEach(([lane, pts]) => {
+          totals[lane] += pts;
+        });
+      });
+
+      const ranked = Object.entries(totals)
+        .sort(([, a], [, b]) => b - a)
+        .map(([lane]) => lane);
+
+      return { primary: ranked[0], secondary: ranked[1], totals };
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // COMPONENT ▸ SPLASH SCREEN  (brand-only landing, tap to continue)
+    // ─────────────────────────────────────────────────────────────
+
+    function SplashScreen({ onContinue }) {
+      return (
+        <button
+          onClick={onContinue}
+          className="flex flex-col min-h-screen w-full px-6 py-12 cursor-pointer"
+          aria-label="Enter TRNSFRM"
+        >
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <h1
+              className="font-display font-medium text-white text-center"
+              style={{
+                fontSize: 'clamp(3rem, 15vw, 4.5rem)',
+                letterSpacing: '0.22em',
+                textShadow: '0 0 28px rgba(255,255,255,0.28), 0 0 68px rgba(255,255,255,0.12)',
+                opacity: 0,
+                animation: 'riseIn 2.2s ease-out 0.2s forwards',
+              }}
+            >
+              TRNSFRM
+            </h1>
+          </div>
+
+          <p
+            className="text-center text-xs text-white/40 font-medium pb-2"
+            style={{
+              letterSpacing: '0.32em',
+              opacity: 0,
+              animation: 'riseIn 2.4s ease-out 1.2s forwards',
+            }}
+          >
+            TAP TO CONTINUE
+          </p>
+        </button>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // COMPONENT ▸ WELCOME SCREEN  (tagline, subtext, primary CTAs)
+    // ─────────────────────────────────────────────────────────────
+
+    function WelcomeScreen({ onStart, onSkip }) {
+      return (
+        <div className="screen-enter flex flex-col min-h-screen px-6 pt-16 pb-10">
+          {/* small lockup at top for brand continuity */}
+          <p
+            className="font-display font-medium text-white/70 text-sm mb-auto"
+            style={{ letterSpacing: '0.28em' }}
+          >
+            TRNSFRM
+          </p>
+
+          <div className="flex-1 flex flex-col justify-center">
+            <div className="w-8 h-px bg-white/30 mb-8" />
+            <p className="text-3xl font-light text-white mb-6 leading-tight">
+              Train With Identity
+            </p>
+            <p className="text-sm text-gray-400 leading-relaxed max-w-xs">
+              Progress isn't about doing more—<br />it's about doing what actually fits you.
+            </p>
+          </div>
+
+          <div className="pt-10">
+            <p
+              className="text-xs text-white/40 font-medium mb-3"
+              style={{ letterSpacing: '0.22em' }}
+            >
+              THE IDENTITY QUIZ:
+            </p>
+            <p className="text-sm text-gray-400 leading-relaxed mb-8">
+              A quick assessment to match you with the training style your body performs best with.
+            </p>
+
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={onStart}
+                className="w-full bg-white text-black font-semibold text-xs py-4 px-6 hover:bg-white/90 active:bg-white/80 transition-colors"
+                style={{ letterSpacing: '0.18em' }}
+              >
+                START IDENTITY QUIZ
+              </button>
+              <button
+                onClick={onSkip}
+                className="w-full border border-white/20 text-white/50 font-medium text-xs py-4 px-6 hover:border-white/40 hover:text-white/70 transition-colors"
+                style={{ letterSpacing: '0.18em' }}
+              >
+                SKIP QUIZ
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // COMPONENT ▸ QUIZ SCREEN
+    // ─────────────────────────────────────────────────────────────
+
+    function QuizScreen({ onComplete }) {
+      const [step, setStep]         = useState(0);
+      const [answers, setAnswers]   = useState([]);
+      const [selected, setSelected] = useState(null);
+      const [animKey, setAnimKey]   = useState(0);
+
+      const question    = QUESTIONS[step];
+      const total       = QUESTIONS.length;
+      const progressPct = ((step + 1) / total) * 100;
+
+      const handleSelect = useCallback((answer) => {
+        if (selected) return; // prevent double-tap
+        setSelected(answer);
+
+        setTimeout(() => {
+          const updated = [...answers, answer];
+          if (step + 1 >= total) {
+            onComplete(updated);
+          } else {
+            setAnswers(updated);
+            setStep(s => s + 1);
+            setSelected(null);
+            setAnimKey(k => k + 1);
+          }
+        }, 280);
+      }, [selected, answers, step, total, onComplete]);
+
+      return (
+        <div className="flex flex-col min-h-screen">
+          {/* Progress bar */}
+          <div className="w-full h-px bg-white/10">
+            <div
+              className="h-full bg-white progress-fill"
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
+
+          <div key={animKey} className="screen-enter flex flex-col flex-1 px-6 pt-10 pb-10">
+            {/* Counter */}
+            <p
+              className="text-xs text-white/25 font-medium mb-10"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              {step + 1} / {total}
+            </p>
+
+            {/* Question */}
+            <h2 className="text-2xl font-bold leading-snug text-white mb-10">
+              {question.text}
+            </h2>
+
+            {/* Answer cards */}
+            <div className="flex flex-col gap-3 flex-1">
+              {question.answers.map((answer, i) => {
+                const isSelected = selected === answer;
+                return (
+                  <button
+                    key={i}
+                    onClick={() => handleSelect(answer)}
+                    className={`answer-card w-full text-left px-5 py-4 border text-sm font-medium leading-snug
+                      ${isSelected
+                        ? 'bg-white text-black border-white selected'
+                        : 'bg-transparent text-white/70 border-white/12 hover:border-white/35 hover:text-white'
+                      }`}
+                    style={!isSelected ? { borderColor: 'rgba(255,255,255,0.12)' } : {}}
+                  >
+                    {answer.text}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // COMPONENT ▸ RESULTS SCREEN
+    // ─────────────────────────────────────────────────────────────
+
+    function ResultsScreen({ primaryKey, secondaryKey, onContinue }) {
+      const primary   = LANES[primaryKey];
+      const secondary = LANES[secondaryKey];
+
+      return (
+        <div className="screen-enter flex flex-col min-h-screen px-6 pt-16 pb-10">
+          <div className="flex-1">
+            {/* Section label */}
+            <p
+              className="text-xs text-white/25 font-medium mb-12"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              YOUR IDENTITY
+            </p>
+
+            {/* Primary lane */}
+            <div className="mb-10">
+              <p
+                className="text-xs text-white/25 font-medium mb-4"
+                style={{ letterSpacing: '0.15em' }}
+              >
+                PRIMARY LANE
+              </p>
+              <h1
+                className="font-black text-white leading-none mb-3"
+                style={{ fontSize: 'clamp(2.5rem, 13vw, 3.5rem)', letterSpacing: '-0.01em' }}
+              >
+                {primary.label.replace('The ', '').toUpperCase()}
+              </h1>
+              <p className="text-white/40 text-sm italic mb-6">
+                "{primary.tagline}"
+              </p>
+              <p className="text-sm text-white/55 leading-relaxed">
+                {primary.description}
+              </p>
+            </div>
+
+            <div className="border-t border-white/8 my-8" style={{ borderColor: 'rgba(255,255,255,0.08)' }} />
+
+            {/* Secondary lane */}
+            <div className="mb-10">
+              <p
+                className="text-xs text-white/25 font-medium mb-4"
+                style={{ letterSpacing: '0.15em' }}
+              >
+                SECONDARY LANE
+              </p>
+              <h2 className="text-2xl font-bold text-white uppercase tracking-tight leading-none mb-1">
+                {secondary.label.replace('The ', '')}
+              </h2>
+              <p className="text-xs text-white/35">
+                {secondary.tagline}
+              </p>
+            </div>
+
+            {/* Recommended program pill */}
+            <div
+              className="border p-4"
+              style={{ borderColor: 'rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)' }}
+            >
+              <p
+                className="text-xs text-white/25 font-medium mb-1"
+                style={{ letterSpacing: '0.15em' }}
+              >
+                RECOMMENDED PROGRAM
+              </p>
+              <p className="text-white font-semibold text-sm">
+                {primary.program}
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={onContinue}
+            className="mt-10 w-full bg-white text-black font-semibold text-xs py-4 px-6 hover:bg-white/90 active:bg-white/80 transition-colors"
+            style={{ letterSpacing: '0.18em' }}
+          >
+            START YOUR PROGRAM
+          </button>
+        </div>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // COMPONENT ▸ SELECT SCREEN  (skip quiz path)
+    // ─────────────────────────────────────────────────────────────
+
+    function SelectScreen({ onSelect }) {
+      return (
+        <div className="screen-enter flex flex-col min-h-screen px-6 pt-16 pb-10">
+          <div className="flex-1">
+            <p
+              className="text-xs text-white/25 font-medium mb-5"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              CHOOSE YOUR LANE
+            </p>
+            <h2 className="text-3xl font-black text-white uppercase leading-tight mb-3">
+              What are you<br />training for?
+            </h2>
+            <p className="text-sm text-white/35 mb-12">
+              Select the program that fits your identity.
+            </p>
+
+            <div className="flex flex-col gap-3">
+              {Object.values(LANES).map((lane) => (
+                <button
+                  key={lane.key}
+                  onClick={() => onSelect(lane.key)}
+                  className="answer-card w-full text-left px-5 py-5 border hover:border-white/40 group transition-colors"
+                  style={{ borderColor: 'rgba(255,255,255,0.12)' }}
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-bold text-white uppercase tracking-wide mb-0.5 group-hover:text-white">
+                        {lane.selectLabel}
+                      </p>
+                      <p className="text-xs text-white/35 group-hover:text-white/50 transition-colors">
+                        {lane.selectSub}
+                      </p>
+                    </div>
+                    <span className="text-white/20 group-hover:text-white/50 transition-colors shrink-0 text-base">
+                      →
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // COMPONENT ▸ PROGRAM SCREEN
+    // ─────────────────────────────────────────────────────────────
+
+    function ProgramScreen({ laneKey, onReset }) {
+      const lane    = LANES[laneKey];
+      const program = PROGRAMS[laneKey];
+
+      return (
+        <div className="screen-enter flex flex-col min-h-screen px-6 pt-16 pb-10">
+          <div className="flex-1">
+            {/* Header */}
+            <p
+              className="text-xs text-white/25 font-medium mb-3"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              {lane.label.toUpperCase()}
+            </p>
+            <h1 className="text-3xl font-black text-white uppercase leading-tight mb-4">
+              {program.title}
+            </h1>
+            <p className="text-sm text-white/45 leading-relaxed mb-12">
+              {program.description}
+            </p>
+
+            {/* Weekly structure */}
+            <p
+              className="text-xs text-white/25 font-medium mb-6"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              WEEKLY STRUCTURE
+            </p>
+
+            <div className="flex flex-col">
+              {program.days.map((day, i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-5 py-4"
+                  style={{
+                    borderBottom: i < program.days.length - 1
+                      ? '1px solid rgba(255,255,255,0.07)'
+                      : 'none',
+                  }}
+                >
+                  <span className="text-xs text-white/18 font-mono pt-px w-5 shrink-0" style={{ color: 'rgba(255,255,255,0.18)' }}>
+                    {day.num}
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-white leading-none mb-1">
+                      {day.label}
+                    </p>
+                    <p className="text-xs text-white/40">
+                      {day.detail}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* CTAs */}
+          <div className="pt-10 flex flex-col gap-3">
+            <button
+              className="w-full bg-white text-black font-semibold text-xs py-4 px-6 hover:bg-white/90 active:bg-white/80 transition-colors"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              START TODAY
+            </button>
+            <button
+              onClick={onReset}
+              className="w-full text-white/25 font-medium text-xs py-3 hover:text-white/50 transition-colors"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              START OVER
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // APP ▸ ROOT
+    // ─────────────────────────────────────────────────────────────
+
+    function App() {
+      const [screen,    setScreen]    = useState('splash');
+      const [primary,   setPrimary]   = useState(null);
+      const [secondary, setSecondary] = useState(null);
+      const [activeLane, setActiveLane] = useState(null);
+
+      // Remove loading overlay once React is running
+      useEffect(() => {
+        const el = document.getElementById('loading');
+        if (el) el.style.display = 'none';
+      }, []);
+
+      const handleQuizComplete = useCallback((answers) => {
+        const { primary: p, secondary: s } = calculateResults(answers);
+        setPrimary(p);
+        setSecondary(s);
+        setScreen('results');
+      }, []);
+
+      const handleResultsContinue = useCallback(() => {
+        setActiveLane(primary);
+        setScreen('program');
+      }, [primary]);
+
+      const handleLaneSelect = useCallback((key) => {
+        setActiveLane(key);
+        setScreen('program');
+      }, []);
+
+      const handleReset = useCallback(() => {
+        setPrimary(null);
+        setSecondary(null);
+        setActiveLane(null);
+        setScreen('splash');
+      }, []);
+
+      return (
+        <div className="bg-black min-h-screen" style={{ maxWidth: '448px', marginLeft: 'auto', marginRight: 'auto' }}>
+          {screen === 'splash' && (
+            <SplashScreen onContinue={() => setScreen('welcome')} />
+          )}
+          {screen === 'welcome' && (
+            <WelcomeScreen
+              onStart={() => setScreen('quiz')}
+              onSkip={()  => setScreen('select')}
+            />
+          )}
+          {screen === 'quiz' && (
+            <QuizScreen onComplete={handleQuizComplete} />
+          )}
+          {screen === 'results' && (
+            <ResultsScreen
+              primaryKey={primary}
+              secondaryKey={secondary}
+              onContinue={handleResultsContinue}
+            />
+          )}
+          {screen === 'select' && (
+            <SelectScreen onSelect={handleLaneSelect} />
+          )}
+          {screen === 'program' && (
+            <ProgramScreen laneKey={activeLane} onReset={handleReset} />
+          )}
+        </div>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // RENDER
+    // ─────────────────────────────────────────────────────────────
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+
+  </script>
+</body>
+</html>
