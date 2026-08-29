@@ -62,6 +62,23 @@
 </head>
 
 <body class="bg-black">
+  <!-- Live reload: poll Last-Modified, reload when file changes (only when served via http://) -->
+  <script>
+    (function () {
+      if (location.protocol !== 'http:' && location.protocol !== 'https:') return;
+      let last = null;
+      setInterval(async () => {
+        try {
+          const r = await fetch(location.pathname + '?_=' + Date.now(), { method: 'HEAD', cache: 'no-store' });
+          const m = r.headers.get('last-modified');
+          if (!m) return;
+          if (last && m !== last) location.reload();
+          last = m;
+        } catch (_) {}
+      }, 1200);
+    })();
+  </script>
+
   <!-- Loading state visible before React mounts -->
   <div id="loading" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;">
     <span style="font-size:11px;letter-spacing:0.25em;color:rgba(255,255,255,0.2);font-family:Inter,system-ui,sans-serif;text-transform:uppercase;">TRNSFRM</span>
@@ -88,7 +105,7 @@
         answers: [
           { text: "Build muscle and reshape my physique",                  scores: { Builder: 3, Endurer: 0, Hybrid: 1, Competitor: 0 } },
           { text: "Run faster and test my endurance",                      scores: { Builder: 0, Endurer: 3, Hybrid: 1, Competitor: 0 } },
-          { text: "Become strong, fast, and capable in every area",        scores: { Builder: 1, Endurer: 1, Hybrid: 3, Competitor: 0 } },
+          { text: "Become stronger, faster, and more athletic in all areas", scores: { Builder: 1, Endurer: 1, Hybrid: 3, Competitor: 0 } },
           { text: "Train to compete — and win for sport",                  scores: { Builder: 0, Endurer: 1, Hybrid: 1, Competitor: 3 } },
         ],
       },
@@ -100,14 +117,15 @@
           { text: "A long run, ride, or swim at a steady pace",         scores: { Builder: 0, Endurer: 3, Hybrid: 1, Competitor: 0 } },
           { text: "Circuits — strength and cardio in the same session", scores: { Builder: 1, Endurer: 1, Hybrid: 3, Competitor: 1 } },
           { text: "Sport drills and position-specific practice",        scores: { Builder: 0, Endurer: 0, Hybrid: 1, Competitor: 3 } },
+          { text: "Not sure",                                           scores: { Builder: 0, Endurer: 0, Hybrid: 0, Competitor: 0 } },
         ],
       },
       {
         id: 3,
         text: "What does progress look like to you?",
         answers: [
-          { text: "Visible muscle growth and heavier lifts",            scores: { Builder: 3, Endurer: 0, Hybrid: 1, Competitor: 1 } },
-          { text: "Faster splits and longer distances",                 scores: { Builder: 0, Endurer: 3, Hybrid: 0, Competitor: 1 } },
+          { text: "Look better in the mirror",                          scores: { Builder: 3, Endurer: 0, Hybrid: 1, Competitor: 1 } },
+          { text: "Faster run times, and longer distances",             scores: { Builder: 0, Endurer: 3, Hybrid: 0, Competitor: 1 } },
           { text: "Improving across multiple fitness metrics",          scores: { Builder: 1, Endurer: 1, Hybrid: 3, Competitor: 1 } },
           { text: "Outperforming opponents on the field or court",      scores: { Builder: 0, Endurer: 0, Hybrid: 1, Competitor: 3 } },
         ],
@@ -130,6 +148,7 @@
           { text: "It's the main event — it's why I train",            scores: { Builder: 0, Endurer: 3, Hybrid: 1, Competitor: 0 } },
           { text: "I genuinely love both lifting and cardio",          scores: { Builder: 1, Endurer: 1, Hybrid: 3, Competitor: 1 } },
           { text: "Conditioning specific to my sport and position",    scores: { Builder: 1, Endurer: 1, Hybrid: 1, Competitor: 3 } },
+          { text: "I'd skip it entirely if I could",                   scores: { Builder: 3, Endurer: 0, Hybrid: 0, Competitor: 0 } },
         ],
       },
       {
@@ -138,7 +157,7 @@
         answers: [
           { text: "A bodybuilder or powerlifter",                      scores: { Builder: 3, Endurer: 0, Hybrid: 1, Competitor: 1 } },
           { text: "A marathon runner or triathlete",                   scores: { Builder: 0, Endurer: 3, Hybrid: 0, Competitor: 1 } },
-          { text: "A CrossFit competitor or obstacle course racer",    scores: { Builder: 1, Endurer: 1, Hybrid: 3, Competitor: 1 } },
+          { text: "A Hyrox or CrossFit competitor",                    scores: { Builder: 1, Endurer: 1, Hybrid: 3, Competitor: 1 } },
           { text: "A professional team or combat sport athlete",       scores: { Builder: 0, Endurer: 0, Hybrid: 1, Competitor: 3 } },
         ],
       },
@@ -257,6 +276,655 @@
     };
 
     // ─────────────────────────────────────────────────────────────
+    // DATA ▸ BUILDER PROGRAMS  (multi-week, split-themed)
+    // Categorized into Hypertrophy and Powerlifting.
+    // ─────────────────────────────────────────────────────────────
+
+    const BUILDER_PROGRAMS = {
+      hypertrophy: [
+        {
+          id: 'arnold-split',
+          name: 'Arnold Split',
+          weeks: 6,
+          daysPerWeek: 6,
+          description: 'Arnold Schwarzenegger\'s legendary high-volume split: Chest+Back, Shoulders+Arms, and Legs — each hit twice per week for maximum hypertrophy.',
+          schedule: [
+            { num: '01', label: 'Chest & Back',     detail: 'Compound + isolation supersets' },
+            { num: '02', label: 'Shoulders & Arms', detail: 'Delts · Biceps · Triceps' },
+            { num: '03', label: 'Legs',             detail: 'Quads · Hamstrings · Calves' },
+            { num: '04', label: 'Chest & Back',     detail: 'Volume & accessory focus' },
+            { num: '05', label: 'Shoulders & Arms', detail: 'Volume & accessory focus' },
+            { num: '06', label: 'Legs',             detail: 'Posterior chain emphasis' },
+            { num: '07', label: 'Rest',             detail: 'Active recovery' },
+          ],
+        },
+        {
+          id: 'bro-split',
+          name: 'Bro Split',
+          weeks: 4,
+          daysPerWeek: 5,
+          description: 'A classic bodybuilding split — one major muscle group per day. High volume, full recovery, and unbeatable for hypertrophy when intensity is dialed in.',
+          schedule: [
+            { num: '01', label: 'Chest',     detail: 'Bench, incline, fly variations' },
+            { num: '02', label: 'Back',      detail: 'Rows, pulldowns, pull-ups' },
+            { num: '03', label: 'Shoulders', detail: 'Press, lateral, rear delts' },
+            { num: '04', label: 'Arms',      detail: 'Biceps & Triceps' },
+            { num: '05', label: 'Legs',      detail: 'Quads, hams, glutes, calves' },
+            { num: '06', label: 'Rest',      detail: 'Recovery' },
+            { num: '07', label: 'Rest',      detail: 'Recovery' },
+          ],
+        },
+        {
+          id: 'ppl',
+          name: 'Push/Pull/Legs',
+          weeks: 5,
+          daysPerWeek: 6,
+          description: 'The modern hypertrophy classic. Each muscle hit twice per week with optimal recovery, balancing pushing, pulling, and lower body movements.',
+          schedule: [
+            { num: '01', label: 'Push', detail: 'Chest · Shoulders · Triceps' },
+            { num: '02', label: 'Pull', detail: 'Back · Biceps · Rear Delts' },
+            { num: '03', label: 'Legs', detail: 'Quads · Hamstrings · Glutes' },
+            { num: '04', label: 'Push', detail: 'Volume & accessory focus' },
+            { num: '05', label: 'Pull', detail: 'Volume & accessory focus' },
+            { num: '06', label: 'Legs', detail: 'Posterior chain emphasis' },
+            { num: '07', label: 'Rest', detail: 'Recovery' },
+          ],
+        },
+        {
+          id: 'throwback-split',
+          name: 'Golden Era Gainz',
+          weeks: 4,
+          daysPerWeek: 3,
+          description: 'Old-school full-body training, three times per week. Built on the principles of the 1960s and 70s — heavy compound lifts, high frequency, simple programming.',
+          schedule: [
+            { num: '01', label: 'Full Body A', detail: 'Squat · Bench · Row' },
+            { num: '02', label: 'Rest',        detail: 'Recovery' },
+            { num: '03', label: 'Full Body B', detail: 'Deadlift · OHP · Chins' },
+            { num: '04', label: 'Rest',        detail: 'Recovery' },
+            { num: '05', label: 'Full Body C', detail: 'Squat · Incline · Row' },
+            { num: '06', label: 'Rest',        detail: 'Recovery' },
+            { num: '07', label: 'Rest',        detail: 'Recovery' },
+          ],
+        },
+      ],
+      powerlifting: [
+        {
+          id: '531',
+          name: '5/3/1',
+          weeks: 4,
+          daysPerWeek: 4,
+          description: 'Jim Wendler\'s percentage-based system built around four core lifts: squat, bench, deadlift, and overhead press. Slow, steady progression with built-in deloads.',
+          schedule: [
+            { num: '01', label: 'Overhead Press', detail: '5/3/1 + accessories' },
+            { num: '02', label: 'Deadlift',       detail: '5/3/1 + accessories' },
+            { num: '03', label: 'Bench Press',    detail: '5/3/1 + accessories' },
+            { num: '04', label: 'Squat',          detail: '5/3/1 + accessories' },
+            { num: '05', label: 'Rest',           detail: 'Recovery' },
+            { num: '06', label: 'Rest',           detail: 'Recovery' },
+            { num: '07', label: 'Rest',           detail: 'Recovery' },
+          ],
+        },
+        {
+          id: 'texas-method',
+          name: 'Texas Method',
+          weeks: 5,
+          daysPerWeek: 3,
+          description: 'A three-day intermediate powerlifting split — Volume Monday, Recovery Wednesday, Intensity Friday. Designed for steady weekly PRs once linear progression stalls.',
+          schedule: [
+            { num: '01', label: 'Volume Day',    detail: 'Squat 5×5 · Bench 5×5 · Deadlift 1×5' },
+            { num: '02', label: 'Rest',          detail: 'Recovery' },
+            { num: '03', label: 'Recovery Day',  detail: 'Light squat · OHP 5×5' },
+            { num: '04', label: 'Rest',          detail: 'Recovery' },
+            { num: '05', label: 'Intensity Day', detail: 'Squat PR · Bench PR · Deadlift PR' },
+            { num: '06', label: 'Rest',          detail: 'Recovery' },
+            { num: '07', label: 'Rest',          detail: 'Recovery' },
+          ],
+        },
+        {
+          id: 'starting-strength',
+          name: 'Starting Strength',
+          weeks: 6,
+          daysPerWeek: 3,
+          description: 'Mark Rippetoe\'s linear progression program for novices. Three sessions per week alternating between two simple workouts — add weight every session.',
+          schedule: [
+            { num: '01', label: 'Workout A', detail: 'Squat 3×5 · Bench 3×5 · Deadlift 1×5' },
+            { num: '02', label: 'Rest',      detail: 'Recovery' },
+            { num: '03', label: 'Workout B', detail: 'Squat 3×5 · OHP 3×5 · Power Clean 5×3' },
+            { num: '04', label: 'Rest',      detail: 'Recovery' },
+            { num: '05', label: 'Workout A', detail: 'Squat 3×5 · Bench 3×5 · Deadlift 1×5' },
+            { num: '06', label: 'Rest',      detail: 'Recovery' },
+            { num: '07', label: 'Rest',      detail: 'Recovery' },
+          ],
+        },
+        {
+          id: 'sheiko',
+          name: 'Sheiko',
+          weeks: 4,
+          daysPerWeek: 3,
+          description: 'Boris Sheiko\'s Russian high-volume powerlifting system. Frequency, intensity variation, and brutal volume — built for advanced lifters chasing competition PRs.',
+          schedule: [
+            { num: '01', label: 'Bench Focus',    detail: 'Bench 6×4 · Squat 5×3 · Bench technique' },
+            { num: '02', label: 'Rest',           detail: 'Recovery' },
+            { num: '03', label: 'Squat Focus',    detail: 'Squat 6×4 · Bench 5×3 · Deadlift assistance' },
+            { num: '04', label: 'Rest',           detail: 'Recovery' },
+            { num: '05', label: 'Deadlift Focus', detail: 'Deadlift 5×3 · Bench 5×3 · Squat technique' },
+            { num: '06', label: 'Rest',           detail: 'Recovery' },
+            { num: '07', label: 'Rest',           detail: 'Recovery' },
+          ],
+        },
+      ],
+    };
+
+    // ─────────────────────────────────────────────────────────────
+    // DATA ▸ BUILDER WORKOUTS  (single-session, one-off)
+    // ─────────────────────────────────────────────────────────────
+
+    const BUILDER_WORKOUTS = [
+      {
+        id: 'chest-triceps-volume',
+        name: 'Chest & Triceps Volume',
+        type: 'Hypertrophy',
+        duration: '~60 min',
+        description: 'High-volume chest and triceps session built around incline pressing, hypertrophy ranges, and triceps isolation work.',
+        schedule: [
+          { num: '01', label: 'Incline Bench Press',  detail: '4 × 8-10' },
+          { num: '02', label: 'Flat Dumbbell Press',  detail: '4 × 10-12' },
+          { num: '03', label: 'Cable Fly',            detail: '3 × 12-15' },
+          { num: '04', label: 'Triceps Pushdown',     detail: '4 × 12-15' },
+          { num: '05', label: 'Skull Crushers',       detail: '3 × 10-12' },
+          { num: '06', label: 'Triceps Kickback',     detail: '3 × 12-15' },
+        ],
+      },
+      {
+        id: 'back-biceps-volume',
+        name: 'Back & Biceps Volume',
+        type: 'Hypertrophy',
+        duration: '~60 min',
+        description: 'Pull-focused hypertrophy session with a mix of vertical and horizontal pulling, finished with biceps volume work.',
+        schedule: [
+          { num: '01', label: 'Pull-Ups',         detail: '4 × AMRAP' },
+          { num: '02', label: 'Barbell Row',      detail: '4 × 8-10' },
+          { num: '03', label: 'Lat Pulldown',     detail: '3 × 10-12' },
+          { num: '04', label: 'Seated Cable Row', detail: '3 × 12-15' },
+          { num: '05', label: 'Barbell Curl',     detail: '4 × 8-10' },
+          { num: '06', label: 'Hammer Curl',      detail: '3 × 10-12' },
+        ],
+      },
+      {
+        id: 'heavy-squat-day',
+        name: 'Heavy Squat Day',
+        type: 'Powerlifting',
+        duration: '~75 min',
+        description: 'Strength-focused squat session — heavy doubles and triples, followed by accessory work for the posterior chain and core.',
+        schedule: [
+          { num: '01', label: 'Back Squat',            detail: '5 × 3 @ 85%' },
+          { num: '02', label: 'Front Squat',           detail: '3 × 5' },
+          { num: '03', label: 'Romanian Deadlift',     detail: '3 × 8' },
+          { num: '04', label: 'Bulgarian Split Squat', detail: '3 × 8 each leg' },
+          { num: '05', label: 'Plank',                 detail: '3 × 60s' },
+        ],
+      },
+      {
+        id: 'deadlift-focus',
+        name: 'Deadlift Focus',
+        type: 'Powerlifting',
+        duration: '~75 min',
+        description: 'Heavy pulling day centered on the conventional deadlift, with accessory work for the back, hamstrings, and grip.',
+        schedule: [
+          { num: '01', label: 'Conventional Deadlift', detail: '5 × 3 @ 80%' },
+          { num: '02', label: 'Deficit Deadlift',      detail: '3 × 5' },
+          { num: '03', label: 'Barbell Row',           detail: '4 × 6-8' },
+          { num: '04', label: 'Romanian Deadlift',     detail: '3 × 8' },
+          { num: '05', label: "Farmer's Carry",        detail: '3 × 30s' },
+        ],
+      },
+    ];
+
+    // Lookup helper for any builder item by id
+    function findBuilderItem(id) {
+      if (!id) return null;
+      const all = [
+        ...BUILDER_PROGRAMS.hypertrophy,
+        ...BUILDER_PROGRAMS.powerlifting,
+        ...BUILDER_WORKOUTS,
+      ];
+      return all.find((x) => x.id === id) || null;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // DATA ▸ SPORTS (for Competitor lane)
+    // ─────────────────────────────────────────────────────────────
+
+    const SPORTS = [
+      'Hockey',
+      'Football',
+      'Soccer',
+      'Basketball',
+      'Baseball / Softball',
+      'Volleyball',
+      'Tennis',
+      'Golf',
+      'MMA / Boxing / BJJ',
+      'Track & Field',
+      'Wrestling',
+      'Lacrosse',
+      'Field Hockey',
+      'Gymnastics',
+      'Other',
+    ];
+
+    // ─────────────────────────────────────────────────────────────
+    // AUTH ▸ localStorage shim (MVP — no real backend yet)
+    // ─────────────────────────────────────────────────────────────
+
+    // Epley formula for estimated 1-rep max
+    function estimate1RM(weight, reps) {
+      const w = Number(weight); const r = Number(reps);
+      if (!w || !r) return 0;
+      if (r === 1) return w;
+      return Math.round(w * (1 + r / 30));
+    }
+
+    // Default rest seconds when the program doesn't specify one
+    const DEFAULT_REST_SECONDS = 90;
+
+    // Parse "4 × 8-10" / "5 × 3 @ 85%" → number of sets recommended
+    function parseSetCount(detail) {
+      const m = /^(\d+)\s*[×x]/i.exec(detail || '');
+      if (m) {
+        const n = parseInt(m[1], 10);
+        return Math.min(Math.max(n, 1), 10);
+      }
+      return 3;
+    }
+
+    function validatePassword(pw) {
+      if (!pw || pw.length < 8) return 'Password must be at least 8 characters.';
+      if (!/[A-Z]/.test(pw))    return 'Password must include an uppercase letter.';
+      if (!/[a-z]/.test(pw))    return 'Password must include a lowercase letter.';
+      if (!/[^A-Za-z0-9]/.test(pw)) return 'Password must include a special character.';
+      return null;
+    }
+
+    // Basic profanity filter — substring match, case insensitive.
+    // Not exhaustive; expand as needed.
+    const PROFANITY = [
+      'fuck', 'shit', 'bitch', 'cunt', 'nigger', 'nigga', 'faggot', 'retard',
+      'cock', 'dick', 'pussy', 'whore', 'slut', 'asshole', 'twat', 'dildo',
+      'penis', 'vagina', 'wank', 'jerkoff', 'jizz', 'cum',
+    ];
+    function containsProfanity(s) {
+      const lower = (s || '').toLowerCase();
+      return PROFANITY.some((w) => lower.includes(w));
+    }
+
+    // Username rules: < 25 chars, no whitespace, no profanity. Letters, numbers,
+    // underscores, hyphens, and other symbols are all allowed.
+    function validateUsername(name) {
+      const u = (name || '').trim();
+      if (!u)                  return 'Username is required.';
+      if (u.length >= 25)      return 'Username must be less than 25 characters.';
+      if (/\s/.test(u))        return 'Username cannot contain spaces.';
+      if (containsProfanity(u)) return 'That username contains a word we don\'t allow.';
+      return null;
+    }
+
+    const USERNAME_CHANGE_LIMIT = 3;
+    const USERNAME_CHANGE_COOLDOWN_DAYS = 30;
+
+    function validateBodyMetrics({ heightFt, heightIn, weightLbs }) {
+      const ft = Number(heightFt);
+      const inch = Number(heightIn);
+      const w = Number(weightLbs);
+      if (!Number.isFinite(ft) || ft < 3 || ft > 8)
+        return 'Enter a valid height in feet (3–8).';
+      if (!Number.isFinite(inch) || inch < 0 || inch >= 12)
+        return 'Inches must be between 0 and 11.';
+      if (!Number.isFinite(w) || w < 50 || w > 800)
+        return 'Enter a valid weight in pounds (50–800).';
+      return null;
+    }
+
+    const GENDER_OPTIONS = [
+      { id: 'male',               label: 'Male' },
+      { id: 'female',             label: 'Female' },
+      { id: 'prefer_not_to_say',  label: 'Prefer not to say' },
+    ];
+
+    function validateGender(g) {
+      if (!g) return 'Please select a gender.';
+      if (!GENDER_OPTIONS.some((o) => o.id === g)) return 'Select a valid gender option.';
+      return null;
+    }
+
+    function genderLabel(id) {
+      return GENDER_OPTIONS.find((o) => o.id === id)?.label || '—';
+    }
+
+    function validateDateOfBirth(dob) {
+      if (!dob) return 'Date of birth is required.';
+      const d = new Date(dob);
+      if (isNaN(d.getTime())) return 'Enter a valid date of birth.';
+      const now = new Date();
+      if (d > now) return 'Date of birth cannot be in the future.';
+      const age = (now - d) / (1000 * 60 * 60 * 24 * 365.25);
+      if (age < 13)  return 'You must be at least 13 to create an account.';
+      if (age > 120) return 'Enter a valid date of birth.';
+      return null;
+    }
+
+    const AUTH = {
+      _readUsers()  { try { return JSON.parse(localStorage.getItem('trnsfrm:users') || '{}'); } catch { return {}; } },
+      _writeUsers(u) { localStorage.setItem('trnsfrm:users', JSON.stringify(u)); },
+      currentEmail() { return localStorage.getItem('trnsfrm:session'); },
+
+      signup({ firstName, lastName, username, email, password, agreeTos, agreePromo, profilePicture, heightFt, heightIn, weightLbs, dateOfBirth, gender }) {
+        const fn = (firstName || '').trim();
+        const ln = (lastName  || '').trim();
+        const u  = (username  || '').trim();
+        const e  = (email     || '').trim().toLowerCase();
+        if (!fn || !ln) return { error: 'First and last name are required.' };
+        const uErr = validateUsername(u);
+        if (uErr)       return { error: uErr };
+        if (!e)         return { error: 'Email is required.' };
+        if (!/^\S+@\S+\.\S+$/.test(e)) return { error: 'Enter a valid email.' };
+        const pwErr = validatePassword(password);
+        if (pwErr)      return { error: pwErr };
+        const bodyErr = validateBodyMetrics({ heightFt, heightIn, weightLbs });
+        if (bodyErr)    return { error: bodyErr };
+        const dobErr = validateDateOfBirth(dateOfBirth);
+        if (dobErr)     return { error: dobErr };
+        const genErr = validateGender(gender);
+        if (genErr)     return { error: genErr };
+        if (!agreeTos)  return { error: 'You must agree to the Terms and Conditions.' };
+        const users = this._readUsers();
+        if (users[e])   return { error: 'An account with that email already exists.' };
+        if (this.usernameTaken(u)) return { error: 'That username is already taken.' };
+        users[e] = {
+          firstName: fn,
+          lastName:  ln,
+          username:  u,
+          password,
+          profilePicture: profilePicture || null,
+          heightFt:  Number(heightFt),
+          heightIn:  Number(heightIn),
+          weightLbs: Number(weightLbs),
+          dateOfBirth,
+          gender,
+          agreePromo: !!agreePromo,
+          agreeTos:   true,
+          tosAcceptedAt: Date.now(),
+          usernameChangeCount: 0,
+          usernameLastChangedAt: null,
+          results: null,
+          createdAt: Date.now(),
+        };
+        this._writeUsers(users);
+        localStorage.setItem('trnsfrm:session', e);
+        return { email: e };
+      },
+
+      // One-time DOB set: only allowed if not previously stored.
+      setDateOfBirthOnce(email, dob) {
+        const e = (email || '').trim().toLowerCase();
+        const users = this._readUsers();
+        if (!users[e]) return { error: 'No user found.' };
+        if (users[e].dateOfBirth) return { error: 'Date of birth has already been set and can\'t be changed.' };
+        const valErr = validateDateOfBirth(dob);
+        if (valErr) return { error: valErr };
+        users[e].dateOfBirth = dob;
+        this._writeUsers(users);
+        return { ok: true };
+      },
+
+      // One-shot correction: allowed exactly once after the initial DOB set.
+      correctDateOfBirth(email, dob) {
+        const e = (email || '').trim().toLowerCase();
+        const users = this._readUsers();
+        if (!users[e]) return { error: 'No user found.' };
+        if (!users[e].dateOfBirth) return { error: 'No date of birth on file yet.' };
+        if (users[e].dobCorrected) return { error: 'You\'ve already used your one-time DOB correction.' };
+        const valErr = validateDateOfBirth(dob);
+        if (valErr) return { error: valErr };
+        users[e].dateOfBirth = dob;
+        users[e].dobCorrected = true;
+        this._writeUsers(users);
+        return { ok: true };
+      },
+
+      updateBodyMetrics(email, { heightFt, heightIn, weightLbs }) {
+        const e = (email || '').trim().toLowerCase();
+        const valErr = validateBodyMetrics({ heightFt, heightIn, weightLbs });
+        if (valErr) return { error: valErr };
+        const users = this._readUsers();
+        if (!users[e]) return { error: 'No user found.' };
+        users[e].heightFt  = Number(heightFt);
+        users[e].heightIn  = Number(heightIn);
+        users[e].weightLbs = Number(weightLbs);
+        this._writeUsers(users);
+        return { ok: true };
+      },
+
+      getUser(email) {
+        const e = (email || '').trim().toLowerCase();
+        return this._readUsers()[e] || null;
+      },
+
+      // Returns { canChange, reason, daysUntilNextChange, changesUsed, changesRemaining }
+      usernameChangeStatus(email) {
+        const u = this.getUser(email);
+        if (!u) return { canChange: false, reason: 'No user found.', changesUsed: 0, changesRemaining: 0 };
+        const used = u.usernameChangeCount || 0;
+        const remaining = Math.max(0, USERNAME_CHANGE_LIMIT - used);
+        if (remaining <= 0) {
+          return { canChange: false, reason: 'You\'ve used all 3 username changes for this account.', changesUsed: used, changesRemaining: 0 };
+        }
+        if (u.usernameLastChangedAt) {
+          const elapsed = (Date.now() - u.usernameLastChangedAt) / (1000 * 60 * 60 * 24);
+          const cooldown = USERNAME_CHANGE_COOLDOWN_DAYS - elapsed;
+          if (cooldown > 0) {
+            const days = Math.ceil(cooldown);
+            const nextDate = new Date(u.usernameLastChangedAt + USERNAME_CHANGE_COOLDOWN_DAYS * 86400000);
+            return {
+              canChange: false,
+              reason: `You can change your username again in ${days} day${days === 1 ? '' : 's'}.`,
+              nextDate,
+              daysUntilNextChange: days,
+              changesUsed: used,
+              changesRemaining: remaining,
+            };
+          }
+        }
+        return { canChange: true, changesUsed: used, changesRemaining: remaining };
+      },
+
+      usernameTaken(username, exceptEmail = null) {
+        const target = (username || '').trim().toLowerCase();
+        const users = this._readUsers();
+        for (const [email, user] of Object.entries(users)) {
+          if (exceptEmail && email === exceptEmail) continue;
+          if ((user.username || '').toLowerCase() === target) return true;
+        }
+        return false;
+      },
+
+      changeUsername(email, newUsername) {
+        const e = (email || '').trim().toLowerCase();
+        const u = (newUsername || '').trim();
+        const users = this._readUsers();
+        const user = users[e];
+        if (!user) return { error: 'No user found.' };
+        const status = this.usernameChangeStatus(e);
+        if (!status.canChange) return { error: status.reason };
+        const valErr = validateUsername(u);
+        if (valErr) return { error: valErr };
+        if (u.toLowerCase() === (user.username || '').toLowerCase()) {
+          return { error: 'That\'s already your username.' };
+        }
+        if (this.usernameTaken(u, e)) return { error: 'That username is already taken.' };
+        user.username = u;
+        user.usernameChangeCount = (user.usernameChangeCount || 0) + 1;
+        user.usernameLastChangedAt = Date.now();
+        this._writeUsers(users);
+        return { username: u };
+      },
+
+      updateProfilePicture(email, dataUrl) {
+        const e = (email || '').trim().toLowerCase();
+        const users = this._readUsers();
+        if (!users[e]) return { error: 'No user found.' };
+        users[e].profilePicture = dataUrl || null;
+        this._writeUsers(users);
+        return { ok: true };
+      },
+
+      // ─── Custom workouts & programs (Creation Zone) ─────────────
+      addCustomWorkout(email, workout) {
+        const e = (email || '').trim().toLowerCase();
+        const users = this._readUsers();
+        if (!users[e]) return { error: 'No user found.' };
+        users[e].customWorkouts = users[e].customWorkouts || [];
+        const id = `custom-w-${Date.now()}`;
+        const item = { ...workout, id, isCustom: true, createdAt: Date.now() };
+        users[e].customWorkouts.push(item);
+        this._writeUsers(users);
+        return { item };
+      },
+
+      addCustomProgram(email, program) {
+        const e = (email || '').trim().toLowerCase();
+        const users = this._readUsers();
+        if (!users[e]) return { error: 'No user found.' };
+        users[e].customPrograms = users[e].customPrograms || { hypertrophy: [], powerlifting: [] };
+        const cat = program.category === 'powerlifting' ? 'powerlifting' : 'hypertrophy';
+        const id = `custom-p-${Date.now()}`;
+        const item = { ...program, id, isCustom: true, createdAt: Date.now() };
+        users[e].customPrograms[cat] = users[e].customPrograms[cat] || [];
+        users[e].customPrograms[cat].push(item);
+        this._writeUsers(users);
+        return { item, category: cat };
+      },
+
+      getCustomWorkouts(email) {
+        const u = this.getUser(email);
+        return u?.customWorkouts || [];
+      },
+
+      getCustomPrograms(email, category = null) {
+        const u = this.getUser(email);
+        const all = u?.customPrograms || { hypertrophy: [], powerlifting: [] };
+        if (category) return all[category] || [];
+        return all;
+      },
+
+      // ─── Workout tracking, history & PRs ───────────────────────
+      saveWorkoutSession(email, session) {
+        const e = (email || '').trim().toLowerCase();
+        const users = this._readUsers();
+        if (!users[e]) return { error: 'No user found.' };
+        users[e].workoutHistory = users[e].workoutHistory || [];
+        users[e].prs = users[e].prs || {};
+
+        // Detect new PRs by comparing best e1RM in this session against stored PR
+        const newPRs = [];
+        for (const ex of (session.exercises || [])) {
+          let bestSet = null;
+          let bestE1RM = 0;
+          for (const s of (ex.sets || [])) {
+            const e1rm = estimate1RM(s.weight, s.reps);
+            if (e1rm > bestE1RM) { bestE1RM = e1rm; bestSet = s; }
+          }
+          if (!bestSet) continue;
+          const prior = users[e].prs[ex.name];
+          const priorE1RM = prior ? estimate1RM(prior.weight, prior.reps) : 0;
+          if (bestE1RM > priorE1RM) {
+            users[e].prs[ex.name] = {
+              weight: Number(bestSet.weight),
+              reps:   Number(bestSet.reps),
+              e1RM:   bestE1RM,
+              previousE1RM: priorE1RM,
+              achievedAt:   Date.now(),
+            };
+            newPRs.push({
+              exercise: ex.name,
+              weight:   Number(bestSet.weight),
+              reps:     Number(bestSet.reps),
+              e1RM:     bestE1RM,
+              previousE1RM: priorE1RM,
+            });
+          }
+        }
+
+        const stored = {
+          id: session.id || `session-${Date.now()}`,
+          itemId:    session.itemId    || null,
+          itemName:  session.itemName  || 'Workout',
+          itemType:  session.itemType  || 'workout',
+          startedAt: session.startedAt || Date.now(),
+          completedAt: Date.now(),
+          exercises: (session.exercises || []).map((ex) => ({
+            name: ex.name,
+            sets: (ex.sets || []).map((s) => ({
+              weight: Number(s.weight),
+              reps:   Number(s.reps),
+              restSeconds: s.restSeconds != null ? Number(s.restSeconds) : null,
+            })),
+          })),
+        };
+        users[e].workoutHistory.push(stored);
+        this._writeUsers(users);
+        return { ok: true, session: stored, newPRs };
+      },
+
+      getWorkoutHistory(email) {
+        return this.getUser(email)?.workoutHistory || [];
+      },
+
+      getPRs(email) {
+        return this.getUser(email)?.prs || {};
+      },
+
+      deleteCustomItem(email, id) {
+        const e = (email || '').trim().toLowerCase();
+        const users = this._readUsers();
+        if (!users[e]) return { error: 'No user found.' };
+        if (users[e].customWorkouts) {
+          users[e].customWorkouts = users[e].customWorkouts.filter((w) => w.id !== id);
+        }
+        if (users[e].customPrograms) {
+          for (const cat of Object.keys(users[e].customPrograms)) {
+            users[e].customPrograms[cat] = users[e].customPrograms[cat].filter((p) => p.id !== id);
+          }
+        }
+        this._writeUsers(users);
+        return { ok: true };
+      },
+
+      login(email, password) {
+        const e = (email || '').trim().toLowerCase();
+        const users = this._readUsers();
+        const user = users[e];
+        if (!user || user.password !== password) return { error: 'Invalid email or password.' };
+        localStorage.setItem('trnsfrm:session', e);
+        return { email: e, results: user.results };
+      },
+
+      logout() { localStorage.removeItem('trnsfrm:session'); },
+
+      saveResults(email, results) {
+        const users = this._readUsers();
+        if (!users[email]) return;
+        users[email].results = { ...results, savedAt: Date.now() };
+        this._writeUsers(users);
+      },
+
+      getResults(email) {
+        const users = this._readUsers();
+        return users[email]?.results || null;
+      },
+    };
+
+    // ─────────────────────────────────────────────────────────────
     // SCORING LOGIC
     // ─────────────────────────────────────────────────────────────
 
@@ -280,13 +948,9 @@
     // COMPONENT ▸ SPLASH SCREEN  (brand-only landing, tap to continue)
     // ─────────────────────────────────────────────────────────────
 
-    function SplashScreen({ onContinue }) {
+    function SplashScreen({ onGetStarted, onLogin }) {
       return (
-        <button
-          onClick={onContinue}
-          className="flex flex-col min-h-screen w-full px-6 py-12 cursor-pointer"
-          aria-label="Enter TRNSFRM"
-        >
+        <div className="flex flex-col min-h-screen w-full px-6 py-12">
           <div className="flex-1 flex flex-col items-center justify-center">
             <h1
               className="font-display font-medium text-white text-center"
@@ -302,17 +966,1562 @@
             </h1>
           </div>
 
-          <p
-            className="text-center text-xs text-white/40 font-medium pb-2"
+          <div
+            className="flex flex-col items-center gap-4 pb-2"
             style={{
-              letterSpacing: '0.32em',
               opacity: 0,
               animation: 'riseIn 2.4s ease-out 1.2s forwards',
             }}
           >
-            TAP TO CONTINUE
-          </p>
+            <button
+              onClick={onGetStarted}
+              className="w-full bg-white text-black font-semibold text-xs py-4 px-6 hover:bg-white/90 active:bg-white/80 transition-colors"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              BEGIN YOUR TRANSFORMATION
+            </button>
+            <button
+              onClick={onLogin}
+              className="text-xs text-white/50 font-medium hover:text-white/80 transition-colors py-1"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              ALREADY HAVE AN ACCOUNT? <span className="text-white">LOG IN</span>
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // ICONS ▸ Monochrome SVG glyphs (stroke-based, currentColor)
+    // viewBox 24×24 · strokeWidth 1.75 · round caps/joins
+    // ─────────────────────────────────────────────────────────────
+
+    function Icon({ size = 22, strokeWidth = 1.75, children, ...rest }) {
+      return (
+        <svg
+          width={size} height={size} viewBox="0 0 24 24"
+          fill="none" stroke="currentColor"
+          strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"
+          {...rest}
+        >
+          {children}
+        </svg>
+      );
+    }
+
+    // Training lane icons
+    const IconDumbbell = (p) => (
+      <Icon {...p}>
+        <path d="M3 9 V15 M6 10 V14 M6 12 H18 M18 10 V14 M21 9 V15" />
+      </Icon>
+    );
+    const IconRunner = (p) => (
+      <Icon {...p}>
+        <circle cx="14.5" cy="4" r="2" />
+        <path d="M11 7 L8 13" />
+        <path d="M8 13 L13 11 L17 13" />
+        <path d="M8 13 L4 12" />
+        <path d="M10 13 L12 19 L16 21" />
+        <path d="M9 14 L6 21" />
+      </Icon>
+    );
+    const IconHybrid = (p) => (
+      <Icon {...p}>
+        <circle cx="12" cy="11.5" r="2" />
+        <path d="M12 13.5 V18" />
+        <path d="M12 18 L9.5 22" />
+        <path d="M12 18 L14.5 22" />
+        <path d="M12 13.5 L8 8" />
+        <path d="M12 13.5 L16 8" />
+        <path d="M5 8 H19" />
+        <path d="M4.5 6 V10 M19.5 6 V10" />
+      </Icon>
+    );
+
+    // Sport-specific icons
+    const IconHockey = (p) => (
+      <Icon {...p}>
+        {/* Two crossed sticks. Shafts cross at center (12,12). Heels at y=15, */}
+        {/* blades horizontal — gives a clean 135° hockey-stick angle.         */}
+        <path d="M20 4 L9 15 L3 15" />
+        <path d="M4 4 L15 15 L21 15" />
+      </Icon>
+    );
+    const IconFootball = (p) => (
+      <Icon {...p}>
+        {/* Body — tilted American football with pointed tips (corner to corner) */}
+        <path d="M4 20 Q 4 4 20 4 Q 20 20 4 20 Z" />
+        {/* Center seam running along the long axis */}
+        <path d="M9 15 L15 9" />
+        {/* Laces — short cross-hatches over the seam */}
+        <path d="M10 13.5 L11.3 14.8" strokeWidth="1.4" />
+        <path d="M11.4 12.1 L12.7 13.4" strokeWidth="1.4" />
+        <path d="M12.8 10.7 L14.1 12" strokeWidth="1.4" />
+      </Icon>
+    );
+    const IconSoccer = (p) => (
+      <Icon {...p}>
+        {/* Ball */}
+        <circle cx="12" cy="12" r="9" />
+        {/* Iconic central black panel (solid pentagon) */}
+        <path d="M12 7.5 L8 10.5 L9.5 15 L14.5 15 L16 10.5 Z" fill="currentColor" />
+      </Icon>
+    );
+    const IconBasketball = (p) => (
+      <Icon {...p}>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M3 12 H21" />
+        <path d="M12 3 V21" />
+        <path d="M5 6 C9 9 15 9 19 6" />
+        <path d="M5 18 C9 15 15 15 19 18" />
+      </Icon>
+    );
+    const IconBaseball = (p) => (
+      <Icon {...p}>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M5.5 7 C8 9 8 15 5.5 17" />
+        <path d="M18.5 7 C16 9 16 15 18.5 17" />
+      </Icon>
+    );
+    const IconVolleyball = (p) => (
+      <Icon {...p}>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M3 12 C8 8 16 8 21 12" />
+        <path d="M3 12 C8 16 16 16 21 12" />
+        <path d="M12 3 C8 8 8 16 12 21" />
+      </Icon>
+    );
+    const IconTennis = (p) => (
+      <Icon {...p}>
+        <ellipse cx="12" cy="9" rx="5" ry="6" />
+        <path d="M9 5 H15" />
+        <path d="M8 9 H16" />
+        <path d="M9 13 H15" />
+        <path d="M10 4 V14" />
+        <path d="M14 4 V14" />
+        <path d="M12 15 V22" />
+      </Icon>
+    );
+    const IconGolf = (p) => (
+      <Icon {...p}>
+        <path d="M7 3 V20" />
+        <path d="M7 3 L17 5 L7 8" />
+        <path d="M3 21 H21" />
+        <ellipse cx="12" cy="20.5" rx="4" ry="0.8" />
+      </Icon>
+    );
+    const IconCombat = (p) => (
+      <Icon {...p}>
+        <path d="M6 9 C6 6.5 8 5 10.5 5 H14 C16 5 18 7 18 10 V14 C18 17 16.5 19 14 19 H10 C7.5 19 6 17 6 14 Z" />
+        <path d="M11 5 L11 12" />
+        <path d="M6 11 L11 11" />
+      </Icon>
+    );
+    const IconTrack = (p) => (
+      <Icon {...p}>
+        <path d="M5 8 H19 A4 4 0 0 1 19 16 H5 A4 4 0 0 1 5 8 Z" />
+        <path d="M8 11 H16 A1 1 0 0 1 16 13 H8 A1 1 0 0 1 8 11 Z" />
+      </Icon>
+    );
+    const IconWrestling = (p) => (
+      <Icon {...p}>
+        <circle cx="9" cy="6" r="2" />
+        <circle cx="15" cy="6" r="2" />
+        <path d="M7.5 8 L7 13 L9 18 H15 L17 13 L16.5 8" />
+        <path d="M7 12 H17" />
+        <path d="M9 18 V21 M15 18 V21" />
+      </Icon>
+    );
+    const IconLacrosse = (p) => (
+      <Icon {...p}>
+        <path d="M9 3 L13 7 L9 11 L5 7 Z" />
+        <path d="M7 5 H11 M9 3 V11" strokeWidth="1.2" />
+        <path d="M11 9 L20 21" />
+      </Icon>
+    );
+    const IconFieldHockey = (p) => (
+      <Icon {...p}>
+        <path d="M19 4 V15 C19 18 17 20 14 19.5 L7 18" />
+        <circle cx="5" cy="18" r="1.4" />
+      </Icon>
+    );
+    const IconGymnastics = (p) => (
+      <Icon {...p}>
+        <circle cx="12" cy="5" r="2" />
+        <path d="M12 7 V13" />
+        <path d="M7 9 H17" />
+        <path d="M12 13 L9 18" />
+        <path d="M12 13 L15 18" />
+        <path d="M5 20 H19" />
+      </Icon>
+    );
+    const IconMedal = (p) => (
+      <Icon {...p}>
+        <circle cx="12" cy="14" r="6" />
+        <path d="M8 9 L5 2 L9 3 L12 7" />
+        <path d="M16 9 L19 2 L15 3 L12 7" />
+      </Icon>
+    );
+
+    // Tab nav icons
+    const IconUtensils = (p) => (
+      <Icon {...p}>
+        {/* Fork: 3 prongs + crossbar + stem */}
+        <path d="M4 2 V8" />
+        <path d="M8 2 V8" />
+        <path d="M12 2 V8" />
+        <path d="M4 8 H12" />
+        <path d="M8 8 V22" />
+        {/* Knife: triangular blade + handle */}
+        <path d="M16 2 V12 H20 Z" />
+        <path d="M16 12 V22" />
+      </Icon>
+    );
+    const IconCommunity = (p) => (
+      <Icon {...p}>
+        <circle cx="9" cy="7" r="3" />
+        <circle cx="17" cy="9" r="2.5" />
+        <path d="M3 21 V19 A4 4 0 0 1 7 15 H11 A4 4 0 0 1 15 19 V21" />
+        <path d="M16 21 V19.5 A2.5 2.5 0 0 1 18.5 17 H21" />
+      </Icon>
+    );
+    const IconUser = (p) => (
+      <Icon {...p}>
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 21 V19 A6 6 0 0 1 10 13 H14 A6 6 0 0 1 20 19 V21" />
+      </Icon>
+    );
+
+    // Sport name → icon component
+    const SPORT_ICON_MAP = {
+      'Hockey':              IconHockey,
+      'Football':            IconFootball,
+      'Soccer':              IconSoccer,
+      'Basketball':          IconBasketball,
+      'Baseball / Softball': IconBaseball,
+      'Volleyball':          IconVolleyball,
+      'Tennis':              IconTennis,
+      'Golf':                IconGolf,
+      'MMA / Boxing / BJJ':  IconCombat,
+      'Track & Field':       IconTrack,
+      'Wrestling':           IconWrestling,
+      'Lacrosse':            IconLacrosse,
+      'Field Hockey':        IconFieldHockey,
+      'Gymnastics':          IconGymnastics,
+      'Other':               IconMedal,
+    };
+
+    // Resolves the Training tab icon based on user state
+    function getTrainingIcon(activeLane, activeSport) {
+      if (activeLane === 'Builder')    return IconDumbbell;
+      if (activeLane === 'Endurer')    return IconRunner;
+      if (activeLane === 'Hybrid')     return IconHybrid;
+      if (activeLane === 'Competitor') return SPORT_ICON_MAP[activeSport] || IconMedal;
+      return IconDumbbell; // default before quiz/lane is set
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // COMPONENT ▸ HELP HINT  (small ? icon with toggleable explainer)
+    // ─────────────────────────────────────────────────────────────
+
+    function HelpHint({ children }) {
+      const [open, setOpen] = useState(false);
+      return (
+        <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+          <button
+            type="button"
+            onClick={(e) => { e.preventDefault(); setOpen(!open); }}
+            aria-label="Help"
+            style={{
+              marginLeft: 6,
+              width: 16,
+              height: 16,
+              borderRadius: '50%',
+              border: '1px solid rgba(255,255,255,0.3)',
+              color: open ? '#000' : 'rgba(255,255,255,0.55)',
+              background: open ? '#fff' : 'transparent',
+              fontSize: '10px',
+              fontWeight: 700,
+              padding: 0,
+              lineHeight: 1,
+              cursor: 'pointer',
+              transition: 'background 0.15s ease, color 0.15s ease',
+            }}
+          >
+            ?
+          </button>
+          {open && (
+            <span
+              style={{
+                position: 'absolute',
+                top: '110%',
+                left: 0,
+                right: 'auto',
+                zIndex: 30,
+                width: 240,
+                maxWidth: 'calc(100vw - 60px)',
+                marginTop: 8,
+                padding: '10px 12px',
+                background: '#0d0d0d',
+                border: '1px solid rgba(255,255,255,0.18)',
+                borderRadius: 4,
+                color: 'rgba(255,255,255,0.75)',
+                fontSize: 11,
+                lineHeight: 1.5,
+                fontWeight: 400,
+                letterSpacing: 'normal',
+                textTransform: 'none',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
+              }}
+            >
+              {children}
+            </span>
+          )}
+        </span>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // COMPONENT ▸ BOTTOM NAV  (4 tabs: Training, Nutrition, Community, Me)
+    // ─────────────────────────────────────────────────────────────
+
+    function MeTabIcon({ user, size = 22, active }) {
+      if (user?.profilePicture) {
+        return (
+          <div
+            style={{
+              width: size,
+              height: size,
+              borderRadius: '50%',
+              background: `url(${user.profilePicture}) center/cover`,
+              border: `1px solid ${active ? '#fff' : 'rgba(255,255,255,0.45)'}`,
+              opacity: active ? 1 : 0.7,
+              transition: 'opacity 0.15s ease, border-color 0.15s ease',
+            }}
+          />
+        );
+      }
+      return (
+        <div
+          style={{
+            width: size,
+            height: size,
+            borderRadius: '50%',
+            border: '1.5px solid currentColor',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 7.5,
+            fontWeight: 700,
+            letterSpacing: '0.06em',
+            color: 'currentColor',
+          }}
+        >
+          ME
+        </div>
+      );
+    }
+
+    function BottomNav({ activeTab, onTabChange, activeLane, activeSport, user }) {
+      const TrainingIcon = getTrainingIcon(activeLane, activeSport);
+
+      const tabs = [
+        { key: 'training',  label: 'Training',  Icon: TrainingIcon },
+        { key: 'nutrition', label: 'Nutrition', Icon: IconUtensils },
+        { key: 'community', label: 'Community', Icon: IconCommunity },
+        { key: 'me',        label: 'Me',        Icon: null },
+      ];
+
+      return (
+        <nav
+          style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 40,
+            display: 'flex',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.92)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            borderTop: '1px solid rgba(255,255,255,0.08)',
+          }}
+        >
+          <div style={{ width: '100%', maxWidth: 448, display: 'flex' }}>
+            {tabs.map(({ key, label, Icon }) => {
+              const active = key === activeTab;
+              return (
+                <button
+                  key={key}
+                  onClick={() => onTabChange(key)}
+                  className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 transition-colors"
+                  style={{
+                    color: active ? '#fff' : 'rgba(255,255,255,0.45)',
+                    background: 'transparent',
+                    border: 'none',
+                    padding: '12px 4px 14px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {key === 'me'
+                    ? <MeTabIcon user={user} size={22} active={active} />
+                    : <Icon size={22} strokeWidth={active ? 2 : 1.6} />
+                  }
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: active ? 600 : 500,
+                      letterSpacing: '0.12em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    {label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // COMPONENT ▸ AVATAR  (profile picture or initials, with optional logout)
+    // ─────────────────────────────────────────────────────────────
+
+    function Avatar({ user, size = 36, onClick }) {
+      const initials = `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase();
+      return (
+        <button
+          onClick={onClick}
+          aria-label="Account"
+          className="transition-opacity hover:opacity-80"
+          style={{
+            width: size,
+            height: size,
+            borderRadius: '50%',
+            background: user.profilePicture
+              ? `url(${user.profilePicture}) center/cover`
+              : 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.18)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 0,
+            cursor: onClick ? 'pointer' : 'default',
+          }}
+        >
+          {!user.profilePicture && (
+            <span className="text-xs font-semibold text-white/75" style={{ letterSpacing: '0.04em' }}>
+              {initials || '·'}
+            </span>
+          )}
         </button>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // COMPONENT ▸ AUTH FORM  (shared markup for Login + Signup)
+    // ─────────────────────────────────────────────────────────────
+
+    function AuthForm({ mode, onSubmit, onSwitch, onBack, error }) {
+      const [email, setEmail]       = useState('');
+      const [password, setPassword] = useState('');
+      const isLogin = mode === 'login';
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        onSubmit({ email, password });
+      };
+
+      const inputStyle = {
+        background: 'transparent',
+        border: 'none',
+        borderBottom: '1px solid rgba(255,255,255,0.2)',
+        color: '#fff',
+        fontSize: '15px',
+        padding: '12px 0',
+        width: '100%',
+        outline: 'none',
+        fontFamily: 'inherit',
+      };
+
+      return (
+        <div className="screen-enter flex flex-col min-h-screen px-6 pt-16 pb-10">
+          <div className="flex-1">
+            <p
+              className="text-xs text-white/25 font-medium mb-5"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              {isLogin ? 'WELCOME BACK' : 'CREATE YOUR ACCOUNT'}
+            </p>
+            <h2 className="text-3xl font-black text-white uppercase leading-tight mb-3">
+              {isLogin ? 'Log In' : 'Sign Up'}
+            </h2>
+            <p className="text-sm text-gray-400 mb-12">
+              {isLogin
+                ? 'Pick up where you left off.'
+                : 'Save your identity and your program — accessible from anywhere.'}
+            </p>
+
+            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+              <div>
+                <label className="text-xs text-white/40 font-medium block mb-2" style={{ letterSpacing: '0.18em' }}>
+                  EMAIL
+                </label>
+                <input
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  style={inputStyle}
+                  onFocus={(e) => e.target.style.borderBottom = '1px solid rgba(255,255,255,0.6)'}
+                  onBlur={(e) => e.target.style.borderBottom = '1px solid rgba(255,255,255,0.2)'}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-white/40 font-medium block mb-2" style={{ letterSpacing: '0.18em' }}>
+                  PASSWORD
+                </label>
+                <input
+                  type="password"
+                  required
+                  autoComplete={isLogin ? 'current-password' : 'new-password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  style={inputStyle}
+                  onFocus={(e) => e.target.style.borderBottom = '1px solid rgba(255,255,255,0.6)'}
+                  onBlur={(e) => e.target.style.borderBottom = '1px solid rgba(255,255,255,0.2)'}
+                />
+                {!isLogin && (
+                  <p className="text-xs text-white/30 mt-2">Minimum 6 characters.</p>
+                )}
+              </div>
+
+              {error && (
+                <p className="text-xs text-red-400 font-medium" style={{ letterSpacing: '0.04em' }}>
+                  {error}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                className="w-full bg-white text-black font-semibold text-xs py-4 px-6 hover:bg-white/90 active:bg-white/80 transition-colors mt-2"
+                style={{ letterSpacing: '0.18em' }}
+              >
+                {isLogin ? 'LOG IN' : 'CREATE ACCOUNT'}
+              </button>
+            </form>
+          </div>
+
+          <div className="pt-6 flex flex-col gap-2 items-center">
+            <button
+              onClick={onSwitch}
+              className="text-xs text-white/50 font-medium hover:text-white/80 transition-colors py-2"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              {isLogin
+                ? <>NEW HERE? <span className="text-white">SIGN UP</span></>
+                : <>HAVE AN ACCOUNT? <span className="text-white">LOG IN</span></>
+              }
+            </button>
+            <button
+              onClick={onBack}
+              className="text-xs text-white/25 font-medium hover:text-white/50 transition-colors py-2"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              BACK
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    function LoginScreen(props)  { return <AuthForm mode="login"  {...props} />; }
+
+    // Resize uploaded image to a max dimension and JPEG-encode as data URL,
+    // so localStorage doesn't blow up on a multi-MB photo.
+    function resizeImageDataURL(file, max = 256) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = () => {
+          const img = new Image();
+          img.onerror = reject;
+          img.onload = () => {
+            const ratio = Math.min(max / img.width, max / img.height, 1);
+            const w = Math.round(img.width * ratio);
+            const h = Math.round(img.height * ratio);
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', 0.85));
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // COMPONENT ▸ FULL SIGNUP SCREEN
+    // ─────────────────────────────────────────────────────────────
+
+    function SignupScreen({ error, onSubmit, onSwitch, onBack }) {
+      const [firstName, setFirstName]       = useState('');
+      const [lastName,  setLastName]        = useState('');
+      const [username,  setUsername]        = useState('');
+      const [email,     setEmail]           = useState('');
+      const [confirmEmail, setConfirmEmail] = useState('');
+      const [password,  setPassword]        = useState('');
+      const [heightFt,  setHeightFt]        = useState('');
+      const [heightIn,  setHeightIn]        = useState('');
+      const [weightLbs, setWeightLbs]       = useState('');
+      const [dateOfBirth, setDateOfBirth]   = useState('');
+      const [gender,    setGender]          = useState('');
+      const [agreeTos,  setAgreeTos]        = useState(false);
+      const [agreePromo, setAgreePromo]     = useState(false);
+      const [profilePicture, setProfilePicture] = useState(null);
+      const [localError, setLocalError]     = useState(null);
+
+      const handleFileChange = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+          setLocalError('Please select an image file.');
+          return;
+        }
+        try {
+          const dataUrl = await resizeImageDataURL(file, 256);
+          setProfilePicture(dataUrl);
+          setLocalError(null);
+        } catch {
+          setLocalError('Could not process that image.');
+        }
+      };
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (email.trim().toLowerCase() !== confirmEmail.trim().toLowerCase()) {
+          setLocalError('Emails do not match.');
+          return;
+        }
+        const usernameErr = validateUsername(username);
+        if (usernameErr) { setLocalError(usernameErr); return; }
+        if (AUTH.usernameTaken(username)) { setLocalError('That username is already taken.'); return; }
+        setLocalError(null);
+        onSubmit({
+          firstName, lastName, username, email, password,
+          heightFt, heightIn, weightLbs, dateOfBirth, gender,
+          agreeTos, agreePromo, profilePicture,
+        });
+      };
+
+      // Live username validation hint
+      const usernameHint = (() => {
+        if (!username) return null;
+        const err = validateUsername(username);
+        if (err) return { ok: false, message: err };
+        if (AUTH.usernameTaken(username)) return { ok: false, message: 'That username is already taken.' };
+        return { ok: true, message: 'Username available.' };
+      })();
+
+      const inputStyle = {
+        background: 'transparent',
+        border: 'none',
+        borderBottom: '1px solid rgba(255,255,255,0.2)',
+        color: '#fff',
+        fontSize: '15px',
+        padding: '12px 0',
+        width: '100%',
+        outline: 'none',
+        fontFamily: 'inherit',
+      };
+
+      const fieldLabel = {
+        letterSpacing: '0.18em',
+      };
+
+      const focusBorder  = '1px solid rgba(255,255,255,0.6)';
+      const blurBorder   = '1px solid rgba(255,255,255,0.2)';
+
+      const pwReqs = [
+        { ok: password.length >= 8,            label: '8+ characters' },
+        { ok: /[A-Z]/.test(password),          label: 'Uppercase letter' },
+        { ok: /[a-z]/.test(password),          label: 'Lowercase letter' },
+        { ok: /[^A-Za-z0-9]/.test(password),   label: 'Special character' },
+      ];
+
+      const initials = `${(firstName[0] || '').toUpperCase()}${(lastName[0] || '').toUpperCase()}`;
+
+      return (
+        <div className="screen-enter flex flex-col min-h-screen px-6 pt-16 pb-10">
+          <div className="flex-1">
+            <p
+              className="text-xs text-white/25 font-medium mb-5"
+              style={fieldLabel}
+            >
+              CREATE YOUR ACCOUNT
+            </p>
+            <h2 className="text-3xl font-black text-white uppercase leading-tight mb-3">
+              Sign Up
+            </h2>
+            <p className="text-sm text-gray-400 mb-10">
+              Save your identity and your program — accessible from anywhere.
+            </p>
+
+            <form onSubmit={handleSubmit} className="flex flex-col gap-7">
+              {/* Profile picture */}
+              <div className="flex items-center gap-4">
+                <label className="cursor-pointer">
+                  <div
+                    className="flex items-center justify-center"
+                    style={{
+                      width: 72,
+                      height: 72,
+                      borderRadius: '50%',
+                      border: '1px dashed rgba(255,255,255,0.25)',
+                      background: profilePicture ? `url(${profilePicture}) center/cover` : 'transparent',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {!profilePicture && (
+                      <span className="text-xl font-medium text-white/40">
+                        {initials || '+'}
+                      </span>
+                    )}
+                  </div>
+                  <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                </label>
+                <div className="flex flex-col gap-1">
+                  <p className="text-xs text-white/40 font-medium" style={fieldLabel}>
+                    PROFILE PHOTO
+                  </p>
+                  <p className="text-xs text-white/30">
+                    {profilePicture ? 'Tap circle to change.' : 'Optional. Tap to add.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Name fields */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-white/40 font-medium block mb-2" style={fieldLabel}>
+                    FIRST NAME
+                  </label>
+                  <input
+                    type="text" required autoComplete="given-name"
+                    value={firstName} onChange={(e) => setFirstName(e.target.value)}
+                    style={inputStyle}
+                    onFocus={(ev) => ev.target.style.borderBottom = focusBorder}
+                    onBlur={(ev)  => ev.target.style.borderBottom = blurBorder}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-white/40 font-medium block mb-2" style={fieldLabel}>
+                    LAST NAME
+                  </label>
+                  <input
+                    type="text" required autoComplete="family-name"
+                    value={lastName} onChange={(e) => setLastName(e.target.value)}
+                    style={inputStyle}
+                    onFocus={(ev) => ev.target.style.borderBottom = focusBorder}
+                    onBlur={(ev)  => ev.target.style.borderBottom = blurBorder}
+                  />
+                </div>
+              </div>
+
+              {/* Username */}
+              <div>
+                <label className="text-xs text-white/40 font-medium block mb-2" style={fieldLabel}>
+                  USERNAME
+                </label>
+                <input
+                  type="text" required autoComplete="username" maxLength={24}
+                  value={username} onChange={(e) => setUsername(e.target.value)}
+                  style={inputStyle}
+                  onFocus={(ev) => ev.target.style.borderBottom = focusBorder}
+                  onBlur={(ev)  => ev.target.style.borderBottom = blurBorder}
+                />
+                <p className="text-xs text-white/30 mt-2">
+                  Used on your community profile. Less than 25 characters, no spaces or profanity. {username.length}/24
+                </p>
+                {usernameHint && (
+                  <p
+                    className={`text-xs mt-1 font-medium ${usernameHint.ok ? 'text-white/70' : 'text-red-400'}`}
+                  >
+                    {usernameHint.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Email + confirm */}
+              <div>
+                <label className="text-xs text-white/40 font-medium block mb-2" style={fieldLabel}>
+                  EMAIL
+                </label>
+                <input
+                  type="email" required autoComplete="email"
+                  value={email} onChange={(e) => setEmail(e.target.value)}
+                  style={inputStyle}
+                  onFocus={(ev) => ev.target.style.borderBottom = focusBorder}
+                  onBlur={(ev)  => ev.target.style.borderBottom = blurBorder}
+                />
+              </div>
+              <div>
+                <label className="text-xs text-white/40 font-medium block mb-2" style={fieldLabel}>
+                  CONFIRM EMAIL
+                </label>
+                <input
+                  type="email" required autoComplete="email"
+                  value={confirmEmail} onChange={(e) => setConfirmEmail(e.target.value)}
+                  style={inputStyle}
+                  onFocus={(ev) => ev.target.style.borderBottom = focusBorder}
+                  onBlur={(ev)  => ev.target.style.borderBottom = blurBorder}
+                />
+              </div>
+
+              {/* Password + requirements */}
+              <div>
+                <label className="text-xs text-white/40 font-medium block mb-2" style={fieldLabel}>
+                  PASSWORD
+                </label>
+                <input
+                  type="password" required autoComplete="new-password"
+                  value={password} onChange={(e) => setPassword(e.target.value)}
+                  style={inputStyle}
+                  onFocus={(ev) => ev.target.style.borderBottom = focusBorder}
+                  onBlur={(ev)  => ev.target.style.borderBottom = blurBorder}
+                />
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-3">
+                  {pwReqs.map((r, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <span
+                        className="inline-block"
+                        style={{
+                          width: 10, height: 10, borderRadius: '50%',
+                          background: r.ok ? '#fff' : 'transparent',
+                          border: r.ok ? '1px solid #fff' : '1px solid rgba(255,255,255,0.25)',
+                          transition: 'background 0.15s ease, border-color 0.15s ease',
+                        }}
+                      />
+                      <span className={`text-xs ${r.ok ? 'text-white/80' : 'text-white/35'}`}>
+                        {r.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Height + Weight + DOB */}
+              <div>
+                <div className="flex items-center mb-2">
+                  <label className="text-xs text-white/40 font-medium" style={fieldLabel}>
+                    HEIGHT
+                  </label>
+                  <HelpHint>
+                    Used to personalize your fitness program. Never shared outside your account.
+                  </HelpHint>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-baseline gap-2">
+                    <input
+                      type="number" inputMode="numeric" min="3" max="8" required
+                      value={heightFt} onChange={(e) => setHeightFt(e.target.value)}
+                      style={inputStyle}
+                      onFocus={(ev) => ev.target.style.borderBottom = focusBorder}
+                      onBlur={(ev)  => ev.target.style.borderBottom = blurBorder}
+                    />
+                    <span className="text-xs text-white/40 shrink-0" style={{ letterSpacing: '0.05em' }}>ft</span>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <input
+                      type="number" inputMode="numeric" min="0" max="11" required
+                      value={heightIn} onChange={(e) => setHeightIn(e.target.value)}
+                      style={inputStyle}
+                      onFocus={(ev) => ev.target.style.borderBottom = focusBorder}
+                      onBlur={(ev)  => ev.target.style.borderBottom = blurBorder}
+                    />
+                    <span className="text-xs text-white/40 shrink-0" style={{ letterSpacing: '0.05em' }}>in</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center mb-2">
+                  <label className="text-xs text-white/40 font-medium" style={fieldLabel}>
+                    WEIGHT
+                  </label>
+                  <HelpHint>
+                    Used to personalize your fitness program. Never shared outside your account.
+                  </HelpHint>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <input
+                    type="number" inputMode="decimal" min="50" max="800" step="0.1" required
+                    value={weightLbs} onChange={(e) => setWeightLbs(e.target.value)}
+                    style={inputStyle}
+                    onFocus={(ev) => ev.target.style.borderBottom = focusBorder}
+                    onBlur={(ev)  => ev.target.style.borderBottom = blurBorder}
+                  />
+                  <span className="text-xs text-white/40 shrink-0" style={{ letterSpacing: '0.05em' }}>lbs</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs text-white/40 font-medium block mb-2" style={fieldLabel}>
+                  DATE OF BIRTH
+                </label>
+                <input
+                  type="date" required
+                  value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)}
+                  max={new Date().toISOString().split('T')[0]}
+                  style={{ ...inputStyle, colorScheme: 'dark' }}
+                  onFocus={(ev) => ev.target.style.borderBottom = focusBorder}
+                  onBlur={(ev)  => ev.target.style.borderBottom = blurBorder}
+                />
+              </div>
+
+              {/* Gender */}
+              <div>
+                <div className="flex items-center mb-3">
+                  <label className="text-xs text-white/40 font-medium" style={fieldLabel}>
+                    GENDER
+                  </label>
+                  <HelpHint>
+                    Used only to personalize your training experience. Never shown publicly or shared outside your profile.
+                  </HelpHint>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {GENDER_OPTIONS.map((opt) => {
+                    const active = gender === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setGender(opt.id)}
+                        className={`answer-card text-left text-sm font-medium px-4 py-3 border transition-colors
+                          ${active
+                            ? 'bg-white text-black border-white'
+                            : 'bg-transparent text-white/70 hover:text-white'
+                          }`}
+                        style={!active ? { borderColor: 'rgba(255,255,255,0.15)' } : {}}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Checkboxes */}
+              <div className="flex flex-col gap-3 pt-2">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={agreeTos}
+                    onChange={(e) => setAgreeTos(e.target.checked)}
+                    style={{ accentColor: '#fff', marginTop: '3px', width: 16, height: 16 }}
+                  />
+                  <span className="text-xs text-white/70 leading-relaxed">
+                    I agree to the <span className="text-white underline">Terms and Conditions</span> <span className="text-white/30">(coming soon)</span>.
+                  </span>
+                </label>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={agreePromo}
+                    onChange={(e) => setAgreePromo(e.target.checked)}
+                    style={{ accentColor: '#fff', marginTop: '3px', width: 16, height: 16 }}
+                  />
+                  <span className="text-xs text-white/70 leading-relaxed">
+                    Send me promotional emails from TRNSFRM.
+                  </span>
+                </label>
+              </div>
+
+              {(localError || error) && (
+                <p className="text-xs text-red-400 font-medium" style={{ letterSpacing: '0.04em' }}>
+                  {localError || error}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                className="w-full bg-white text-black font-semibold text-xs py-4 px-6 hover:bg-white/90 active:bg-white/80 transition-colors mt-2"
+                style={fieldLabel}
+              >
+                CREATE ACCOUNT
+              </button>
+            </form>
+          </div>
+
+          <div className="pt-6 flex flex-col gap-2 items-center">
+            <button
+              onClick={onSwitch}
+              className="text-xs text-white/50 font-medium hover:text-white/80 transition-colors py-2"
+              style={fieldLabel}
+            >
+              HAVE AN ACCOUNT? <span className="text-white">LOG IN</span>
+            </button>
+            <button
+              onClick={onBack}
+              className="text-xs text-white/25 font-medium hover:text-white/50 transition-colors py-2"
+              style={fieldLabel}
+            >
+              BACK
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // COMPONENT ▸ COMING SOON STUB  (used by Nutrition + Community tabs)
+    // ─────────────────────────────────────────────────────────────
+
+    function ComingSoonScreen({ Icon, label, headline, body }) {
+      return (
+        <div className="screen-enter flex flex-col min-h-screen px-6 pt-16 pb-32">
+          <div className="flex-1 flex flex-col items-center justify-center text-center">
+            <div className="text-white/20 mb-8">
+              <Icon size={56} strokeWidth={1.25} />
+            </div>
+            <p
+              className="text-xs text-white/30 font-medium mb-3"
+              style={{ letterSpacing: '0.22em' }}
+            >
+              {label}
+            </p>
+            <h1 className="text-3xl font-black text-white uppercase leading-tight mb-4">
+              {headline}
+            </h1>
+            <p className="text-sm text-gray-400 leading-relaxed max-w-xs">
+              {body}
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    function NutritionScreen() {
+      return (
+        <ComingSoonScreen
+          Icon={IconUtensils}
+          label="NUTRITION"
+          headline={<>Macro tracking,<br />coming soon.</>}
+          body="Set your daily targets, log your meals, and stay accountable to your training. Built specifically for your lane."
+        />
+      );
+    }
+
+    function CommunityScreen() {
+      return (
+        <ComingSoonScreen
+          Icon={IconCommunity}
+          label="COMMUNITY"
+          headline={<>The community,<br />coming soon.</>}
+          body="Share PRs, post wins, follow other athletes in your lane. Connect with people who train how you train."
+        />
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // COMPONENT ▸ SETTINGS SCREEN  (account info, username, photo, logout)
+    // ─────────────────────────────────────────────────────────────
+
+    function SettingsScreen({ email, onClose, onLogout }) {
+      const [user, setUser] = useState(() => AUTH.getUser(email));
+      const [editingUsername, setEditingUsername] = useState(false);
+      const [newUsername, setNewUsername] = useState('');
+      const [editingBody, setEditingBody] = useState(false);
+      const [newHeightFt, setNewHeightFt]   = useState('');
+      const [newHeightIn, setNewHeightIn]   = useState('');
+      const [newWeightLbs, setNewWeightLbs] = useState('');
+      const [editingDob, setEditingDob]     = useState(false);
+      const [newDob,      setNewDob]        = useState('');
+      const [error, setError] = useState(null);
+      const [info, setInfo]   = useState(null);
+      const fileInputRef = React.useRef(null);
+
+      const refresh = () => setUser(AUTH.getUser(email));
+
+      const status = AUTH.usernameChangeStatus(email);
+
+      const handlePhotoSelect = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+          setError('Please select an image file.'); return;
+        }
+        try {
+          const dataUrl = await resizeImageDataURL(file, 256);
+          AUTH.updateProfilePicture(email, dataUrl);
+          refresh();
+          setInfo('Profile photo updated.');
+          setError(null);
+          setTimeout(() => setInfo(null), 2000);
+        } catch {
+          setError('Could not process that image.');
+        }
+      };
+
+      const startEditUsername = () => {
+        setNewUsername(user.username || '');
+        setEditingUsername(true);
+        setError(null);
+      };
+
+      const saveUsername = () => {
+        const res = AUTH.changeUsername(email, newUsername);
+        if (res.error) { setError(res.error); return; }
+        refresh();
+        setEditingUsername(false);
+        setError(null);
+        setInfo('Username updated.');
+        setTimeout(() => setInfo(null), 2000);
+      };
+
+      const cancelEditUsername = () => {
+        setEditingUsername(false);
+        setError(null);
+      };
+
+      const startEditBody = () => {
+        setNewHeightFt(String(user.heightFt ?? ''));
+        setNewHeightIn(String(user.heightIn ?? ''));
+        setNewWeightLbs(String(user.weightLbs ?? ''));
+        setEditingBody(true);
+        setError(null);
+      };
+
+      const saveBody = () => {
+        const res = AUTH.updateBodyMetrics(email, {
+          heightFt: newHeightFt, heightIn: newHeightIn, weightLbs: newWeightLbs,
+        });
+        if (res.error) { setError(res.error); return; }
+        refresh();
+        setEditingBody(false);
+        setError(null);
+        setInfo('Height and weight updated.');
+        setTimeout(() => setInfo(null), 2000);
+      };
+
+      const cancelEditBody = () => {
+        setEditingBody(false);
+        setError(null);
+      };
+
+      const startEditDob = () => {
+        setNewDob(user.dateOfBirth || '');
+        setEditingDob(true);
+        setError(null);
+      };
+
+      const saveDob = () => {
+        // If a DOB already exists, this is the one-shot correction path.
+        const res = user.dateOfBirth
+          ? AUTH.correctDateOfBirth(email, newDob)
+          : AUTH.setDateOfBirthOnce(email, newDob);
+        if (res.error) { setError(res.error); return; }
+        refresh();
+        setEditingDob(false);
+        setError(null);
+        setInfo(user.dateOfBirth ? 'Date of birth corrected. Now locked.' : 'Date of birth saved.');
+        setTimeout(() => setInfo(null), 2200);
+      };
+
+      const cancelEditDob = () => {
+        setEditingDob(false);
+        setError(null);
+      };
+
+      const formatDob = (iso) => {
+        if (!iso) return '—';
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return iso;
+        return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+      };
+
+      const fieldLabel = { letterSpacing: '0.18em' };
+
+      const liveHint = (() => {
+        if (!editingUsername || !newUsername) return null;
+        if (newUsername.toLowerCase() === (user.username || '').toLowerCase()) return null;
+        const err = validateUsername(newUsername);
+        if (err) return { ok: false, message: err };
+        if (AUTH.usernameTaken(newUsername, email)) return { ok: false, message: 'That username is already taken.' };
+        return { ok: true, message: 'Available.' };
+      })();
+
+      if (!user) return null;
+
+      return (
+        <div className="screen-enter flex flex-col min-h-screen px-6 pt-16 pb-10">
+          <div className="flex-1">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-10">
+              <p
+                className="text-xs text-white/25 font-medium"
+                style={fieldLabel}
+              >
+                ACCOUNT SETTINGS
+              </p>
+              {onClose && (
+                <button
+                  onClick={onClose}
+                  className="text-xs text-white/40 font-medium hover:text-white/70 transition-colors"
+                  style={fieldLabel}
+                >
+                  CLOSE
+                </button>
+              )}
+            </div>
+
+            {/* Profile photo */}
+            <div className="flex items-center gap-5 mb-10">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="transition-opacity hover:opacity-80"
+                style={{
+                  width: 76, height: 76, borderRadius: '50%',
+                  background: user.profilePicture ? `url(${user.profilePicture}) center/cover` : 'rgba(255,255,255,0.06)',
+                  border: '1px solid rgba(255,255,255,0.18)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: 0, cursor: 'pointer',
+                }}
+              >
+                {!user.profilePicture && (
+                  <span className="text-lg font-semibold text-white/75" style={{ letterSpacing: '0.04em' }}>
+                    {(user.firstName?.[0] || '').toUpperCase()}{(user.lastName?.[0] || '').toUpperCase()}
+                  </span>
+                )}
+              </button>
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoSelect} className="hidden" />
+              <div className="flex flex-col gap-1">
+                <p className="text-xs text-white/40 font-medium" style={fieldLabel}>
+                  PROFILE PHOTO
+                </p>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-xs text-white font-semibold hover:text-white/80 transition-colors text-left"
+                  style={{ letterSpacing: '0.05em' }}
+                >
+                  {user.profilePicture ? 'Change photo' : 'Add photo'}
+                </button>
+              </div>
+            </div>
+
+            {/* Read-only fields */}
+            <SettingsRow label="NAME" value={`${user.firstName} ${user.lastName}`} />
+            <SettingsRow label="EMAIL" value={email} />
+            {/* Date of Birth — one-time set if missing, otherwise locked */}
+            <div className="py-5" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+              <p className="text-xs text-white/40 font-medium mb-2" style={{ letterSpacing: '0.18em' }}>
+                DATE OF BIRTH
+              </p>
+              {editingDob ? (
+                <div className="flex flex-col gap-3">
+                  <input
+                    type="date"
+                    value={newDob}
+                    onChange={(e) => setNewDob(e.target.value)}
+                    max={new Date().toISOString().split('T')[0]}
+                    autoFocus
+                    style={{
+                      background: 'transparent', border: 'none',
+                      borderBottom: '1px solid rgba(255,255,255,0.4)',
+                      color: '#fff', fontSize: '15px', padding: '8px 0',
+                      width: '100%', outline: 'none', fontFamily: 'inherit',
+                      colorScheme: 'dark',
+                    }}
+                  />
+                  <p className="text-xs text-white/35">
+                    {user.dateOfBirth
+                      ? 'This is your one-time correction. After saving, your date of birth is locked permanently.'
+                      : 'Once saved, your date of birth can\'t be changed.'}
+                  </p>
+                  <div className="flex gap-3 mt-1">
+                    <button
+                      onClick={saveDob}
+                      className="flex-1 bg-white text-black font-semibold text-xs py-3 hover:bg-white/90 transition-colors"
+                      style={{ letterSpacing: '0.18em' }}
+                    >
+                      SAVE
+                    </button>
+                    <button
+                      onClick={cancelEditDob}
+                      className="flex-1 border border-white/20 text-white/60 font-medium text-xs py-3 hover:border-white/40 hover:text-white/80 transition-colors"
+                      style={{ letterSpacing: '0.18em' }}
+                    >
+                      CANCEL
+                    </button>
+                  </div>
+                </div>
+              ) : user.dateOfBirth ? (
+                <div className="flex items-center justify-between gap-4">
+                  <p className="text-sm text-white">
+                    {formatDob(user.dateOfBirth)}
+                    {user.dobCorrected && (
+                      <span className="text-xs text-white/35 ml-2">· locked</span>
+                    )}
+                  </p>
+                  {!user.dobCorrected && (
+                    <button
+                      onClick={startEditDob}
+                      className="text-xs text-white font-semibold hover:text-white/80 transition-colors"
+                      style={{ letterSpacing: '0.18em' }}
+                    >
+                      EDIT
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center justify-between gap-4">
+                  <p className="text-sm text-white/50 italic">Not set</p>
+                  <button
+                    onClick={startEditDob}
+                    className="text-xs text-white font-semibold hover:text-white/80 transition-colors"
+                    style={{ letterSpacing: '0.18em' }}
+                  >
+                    ADD
+                  </button>
+                </div>
+              )}
+              {user.dateOfBirth && !user.dobCorrected && !editingDob && (
+                <p className="text-xs text-white/30 mt-2">
+                  You have one correction available if you entered the wrong date.
+                </p>
+              )}
+            </div>
+
+            {/* Gender — private, read-only */}
+            <div className="py-5" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+              <div className="flex items-center mb-2">
+                <p className="text-xs text-white/40 font-medium" style={{ letterSpacing: '0.18em' }}>
+                  GENDER
+                </p>
+                <HelpHint>
+                  Used only to personalize your training experience. Never shown publicly or shared outside your profile.
+                </HelpHint>
+              </div>
+              <p className="text-sm text-white">
+                {user.gender ? genderLabel(user.gender) : <span className="text-white/50 italic">Not set</span>}
+                <span className="text-xs text-white/35 ml-2">· private</span>
+              </p>
+            </div>
+
+            {/* Height + Weight (editable any time) */}
+            <div className="py-5" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+              <div className="flex items-center mb-2">
+                <p className="text-xs text-white/40 font-medium" style={{ letterSpacing: '0.18em' }}>
+                  HEIGHT & WEIGHT
+                </p>
+                <HelpHint>
+                  Used to personalize your fitness program. Never shared outside your account.
+                </HelpHint>
+              </div>
+
+              {!editingBody ? (
+                <div className="flex items-center justify-between gap-4">
+                  <p className="text-sm text-white">
+                    {user.heightFt != null
+                      ? `${user.heightFt}'${user.heightIn ?? 0}" · ${user.weightLbs} lbs`
+                      : '— Not set'}
+                  </p>
+                  <button
+                    onClick={startEditBody}
+                    className="text-xs text-white font-semibold hover:text-white/80 transition-colors"
+                    style={{ letterSpacing: '0.18em' }}
+                  >
+                    {user.heightFt != null ? 'CHANGE' : 'ADD'}
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <p className="text-xs text-white/35 mb-2">Height</p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex items-baseline gap-2">
+                        <input
+                          type="number" inputMode="numeric" min="3" max="8"
+                          value={newHeightFt}
+                          onChange={(e) => setNewHeightFt(e.target.value)}
+                          style={{
+                            background: 'transparent', border: 'none',
+                            borderBottom: '1px solid rgba(255,255,255,0.4)',
+                            color: '#fff', fontSize: '15px', padding: '8px 0',
+                            width: '100%', outline: 'none', fontFamily: 'inherit',
+                          }}
+                        />
+                        <span className="text-xs text-white/40 shrink-0">ft</span>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <input
+                          type="number" inputMode="numeric" min="0" max="11"
+                          value={newHeightIn}
+                          onChange={(e) => setNewHeightIn(e.target.value)}
+                          style={{
+                            background: 'transparent', border: 'none',
+                            borderBottom: '1px solid rgba(255,255,255,0.4)',
+                            color: '#fff', fontSize: '15px', padding: '8px 0',
+                            width: '100%', outline: 'none', fontFamily: 'inherit',
+                          }}
+                        />
+                        <span className="text-xs text-white/40 shrink-0">in</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs text-white/35 mb-2">Weight</p>
+                    <div className="flex items-baseline gap-2">
+                      <input
+                        type="number" inputMode="decimal" min="50" max="800" step="0.1"
+                        value={newWeightLbs}
+                        onChange={(e) => setNewWeightLbs(e.target.value)}
+                        style={{
+                          background: 'transparent', border: 'none',
+                          borderBottom: '1px solid rgba(255,255,255,0.4)',
+                          color: '#fff', fontSize: '15px', padding: '8px 0',
+                          width: '100%', outline: 'none', fontFamily: 'inherit',
+                        }}
+                      />
+                      <span className="text-xs text-white/40 shrink-0">lbs</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 mt-1">
+                    <button
+                      onClick={saveBody}
+                      className="flex-1 bg-white text-black font-semibold text-xs py-3 hover:bg-white/90 transition-colors"
+                      style={{ letterSpacing: '0.18em' }}
+                    >
+                      SAVE
+                    </button>
+                    <button
+                      onClick={cancelEditBody}
+                      className="flex-1 border border-white/20 text-white/60 font-medium text-xs py-3 hover:border-white/40 hover:text-white/80 transition-colors"
+                      style={{ letterSpacing: '0.18em' }}
+                    >
+                      CANCEL
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Username with edit */}
+            <div className="py-5" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+              <p className="text-xs text-white/40 font-medium mb-2" style={fieldLabel}>
+                USERNAME
+              </p>
+
+              {!editingUsername ? (
+                <>
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="text-sm text-white font-semibold">
+                      @{user.username || '(none set)'}
+                    </p>
+                    <button
+                      onClick={startEditUsername}
+                      disabled={!status.canChange}
+                      className={`text-xs font-semibold transition-colors ${status.canChange ? 'text-white hover:text-white/80' : 'text-white/25 cursor-not-allowed'}`}
+                      style={{ letterSpacing: '0.18em' }}
+                    >
+                      CHANGE
+                    </button>
+                  </div>
+                  <p className="text-xs text-white/35 mt-2">
+                    {status.changesUsed} of {USERNAME_CHANGE_LIMIT} changes used.
+                    {!status.canChange && status.reason ? ` ${status.reason}` : ''}
+                  </p>
+                </>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <input
+                    type="text"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
+                    maxLength={24}
+                    autoFocus
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      borderBottom: '1px solid rgba(255,255,255,0.4)',
+                      color: '#fff',
+                      fontSize: '15px',
+                      padding: '8px 0',
+                      width: '100%',
+                      outline: 'none',
+                      fontFamily: 'inherit',
+                    }}
+                  />
+                  <p className="text-xs text-white/30">
+                    Less than 25 characters, no spaces or profanity. {newUsername.length}/24
+                  </p>
+                  {liveHint && (
+                    <p className={`text-xs font-medium ${liveHint.ok ? 'text-white/70' : 'text-red-400'}`}>
+                      {liveHint.message}
+                    </p>
+                  )}
+                  <p className="text-xs text-white/35">
+                    {status.changesRemaining - 1 < 0 ? 0 : status.changesRemaining - 1} change{status.changesRemaining - 1 === 1 ? '' : 's'} will remain after this. You can change again in {USERNAME_CHANGE_COOLDOWN_DAYS} days.
+                  </p>
+                  <div className="flex gap-3 mt-1">
+                    <button
+                      onClick={saveUsername}
+                      className="flex-1 bg-white text-black font-semibold text-xs py-3 hover:bg-white/90 transition-colors"
+                      style={fieldLabel}
+                    >
+                      SAVE
+                    </button>
+                    <button
+                      onClick={cancelEditUsername}
+                      className="flex-1 border border-white/20 text-white/60 font-medium text-xs py-3 hover:border-white/40 hover:text-white/80 transition-colors"
+                      style={fieldLabel}
+                    >
+                      CANCEL
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {(error || info) && (
+              <p className={`text-xs mt-2 font-medium ${error ? 'text-red-400' : 'text-white/70'}`}>
+                {error || info}
+              </p>
+            )}
+          </div>
+
+          {/* Logout */}
+          <button
+            onClick={() => {
+              if (window.confirm('Log out of TRNSFRM?')) onLogout();
+            }}
+            className="mt-10 w-full border border-white/15 text-white/60 font-medium text-xs py-4 hover:border-white/35 hover:text-white/80 transition-colors"
+            style={fieldLabel}
+          >
+            LOG OUT
+          </button>
+        </div>
+      );
+    }
+
+    function SettingsRow({ label, value }) {
+      return (
+        <div className="py-5" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+          <p className="text-xs text-white/40 font-medium mb-2" style={{ letterSpacing: '0.18em' }}>
+            {label}
+          </p>
+          <p className="text-sm text-white">
+            {value}
+          </p>
+        </div>
       );
     }
 
@@ -591,12 +2800,1305 @@
     }
 
     // ─────────────────────────────────────────────────────────────
+    // COMPONENT ▸ SPORT SELECT SCREEN  (Competitor lane)
+    // ─────────────────────────────────────────────────────────────
+
+    function SportSelectScreen({ onContinue }) {
+      const [selected, setSelected] = useState([]);
+
+      const toggle = (sport) => {
+        setSelected((prev) =>
+          prev.includes(sport) ? prev.filter((s) => s !== sport) : [...prev, sport]
+        );
+      };
+
+      const canContinue = selected.length > 0;
+
+      return (
+        <div className="screen-enter flex flex-col min-h-screen px-6 pt-16 pb-10">
+          <div className="flex-1">
+            <p
+              className="text-xs text-white/25 font-medium mb-5"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              SPORT SELECTION
+            </p>
+            <h2 className="text-3xl font-black text-white uppercase leading-tight mb-3">
+              What sport are<br />you training for?
+            </h2>
+            <p className="text-sm text-gray-400 mb-10">
+              Select one or more. We'll tailor your program around your sport's demands.
+            </p>
+
+            <div className="flex flex-wrap gap-2">
+              {SPORTS.map((sport) => {
+                const isOn = selected.includes(sport);
+                return (
+                  <button
+                    key={sport}
+                    onClick={() => toggle(sport)}
+                    className={`answer-card text-sm font-medium px-4 py-2.5 border transition-colors
+                      ${isOn
+                        ? 'bg-white text-black border-white'
+                        : 'bg-transparent text-white/70 hover:text-white hover:border-white/40'
+                      }`}
+                    style={!isOn ? { borderColor: 'rgba(255,255,255,0.15)' } : {}}
+                  >
+                    {sport}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <button
+            onClick={() => canContinue && onContinue(selected)}
+            disabled={!canContinue}
+            className={`mt-10 w-full font-semibold text-xs py-4 px-6 transition-colors
+              ${canContinue
+                ? 'bg-white text-black hover:bg-white/90 active:bg-white/80 cursor-pointer'
+                : 'bg-white/10 text-white/30 cursor-not-allowed'
+              }`}
+            style={{ letterSpacing: '0.18em' }}
+          >
+            CONTINUE
+          </button>
+        </div>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // COMPONENT ▸ BUILDER MENU  (tabbed: Hypertrophy / Powerlifting / Workouts)
+    // ─────────────────────────────────────────────────────────────
+
+    function BuilderMenuScreen({ onSelect, onBack, onCreateWorkout, onCreateProgram, customWorkouts = [], customPrograms = { hypertrophy: [], powerlifting: [] } }) {
+      const [tab, setTab] = useState('hypertrophy');
+
+      const tabs = [
+        { key: 'hypertrophy',  label: 'HYPERTROPHY' },
+        { key: 'powerlifting', label: 'POWERLIFTING' },
+        { key: 'workouts',     label: 'WORKOUTS' },
+        { key: 'create',       label: 'CREATE' },
+      ];
+
+      const isWorkoutTab = tab === 'workouts';
+      const isCreateTab  = tab === 'create';
+
+      const items = isCreateTab
+        ? []
+        : tab === 'workouts'
+          ? [...customWorkouts, ...BUILDER_WORKOUTS]
+          : [...(customPrograms[tab] || []), ...BUILDER_PROGRAMS[tab]];
+
+      return (
+        <div className="screen-enter flex flex-col min-h-screen px-6 pt-16 pb-10">
+          <div className="flex-1">
+            {/* Header */}
+            <p
+              className="text-xs text-white/25 font-medium mb-3"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              THE BUILDER
+            </p>
+            <h1 className="text-3xl font-black text-white uppercase leading-tight mb-3">
+              {isCreateTab
+                ? <>Build something<br />of your own.</>
+                : <>Choose your<br />approach.</>}
+            </h1>
+            <p className="text-sm text-gray-400 mb-8">
+              {isCreateTab
+                ? 'Design a custom workout or build your own multi-week program from scratch.'
+                : isWorkoutTab
+                  ? 'One-off sessions you can drop into anytime.'
+                  : 'Multi-week programs built around a specific training split.'}
+            </p>
+
+            {/* Tabs — horizontally scrollable so labels keep their breathing room */}
+            <div
+              className="flex border-b mb-6 overflow-x-auto"
+              style={{
+                borderColor: 'rgba(255,255,255,0.1)',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch',
+              }}
+            >
+              {tabs.map((t) => {
+                const active = tab === t.key;
+                return (
+                  <button
+                    key={t.key}
+                    onClick={() => setTab(t.key)}
+                    className={`font-semibold py-3 transition-colors whitespace-nowrap ${active ? 'text-white' : 'text-white/35 hover:text-white/60'}`}
+                    style={{
+                      fontSize: 11,
+                      letterSpacing: '0.18em',
+                      padding: '12px 14px',
+                      borderBottom: active ? '2px solid #fff' : '2px solid transparent',
+                      marginBottom: '-1px',
+                      flexShrink: 0,
+                      background: 'transparent',
+                    }}
+                  >
+                    {t.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Create tab: two big option cards */}
+            {isCreateTab ? (
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={onCreateWorkout}
+                  className="answer-card w-full text-left px-5 py-6 border hover:border-white/40 group transition-colors"
+                  style={{ borderColor: 'rgba(255,255,255,0.18)' }}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <p
+                        className="text-xs text-white/35 font-medium mb-2"
+                        style={{ letterSpacing: '0.18em' }}
+                      >
+                        SINGLE SESSION
+                      </p>
+                      <p className="text-base font-bold text-white uppercase tracking-wide mb-2">
+                        Create a Workout
+                      </p>
+                      <p className="text-xs text-white/50 leading-relaxed">
+                        A standalone session you can run on its own — pick a name, list your exercises, set your sets and reps.
+                      </p>
+                    </div>
+                    <span className="text-white/30 group-hover:text-white/60 transition-colors shrink-0 text-lg pt-px">
+                      →
+                    </span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={onCreateProgram}
+                  className="answer-card w-full text-left px-5 py-6 border hover:border-white/40 group transition-colors"
+                  style={{ borderColor: 'rgba(255,255,255,0.18)' }}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <p
+                        className="text-xs text-white/35 font-medium mb-2"
+                        style={{ letterSpacing: '0.18em' }}
+                      >
+                        MULTI-WEEK PLAN
+                      </p>
+                      <p className="text-base font-bold text-white uppercase tracking-wide mb-2">
+                        Create a Program
+                      </p>
+                      <p className="text-xs text-white/50 leading-relaxed">
+                        A 3–6 week structured plan with a weekly split that you build from scratch.
+                      </p>
+                    </div>
+                    <span className="text-white/30 group-hover:text-white/60 transition-colors shrink-0 text-lg pt-px">
+                      →
+                    </span>
+                  </div>
+                </button>
+
+                <p className="text-xs text-white/30 mt-2 leading-relaxed">
+                  Anything you build is saved to your account and shows up in the Hypertrophy, Powerlifting, or Workouts tabs alongside the built-in options.
+                </p>
+              </div>
+            ) : (
+              /* Browse tabs: show items list */
+              <div className="flex flex-col gap-3">
+                {items.length === 0 && (
+                  <p className="text-xs text-white/40 italic">
+                    Nothing here yet.
+                  </p>
+                )}
+                {items.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => onSelect(item)}
+                    className="answer-card w-full text-left px-5 py-4 border hover:border-white/40 group transition-colors"
+                    style={{ borderColor: 'rgba(255,255,255,0.12)' }}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-sm font-bold text-white uppercase tracking-wide">
+                            {item.name}
+                          </p>
+                          {item.isCustom && (
+                            <span
+                              className="text-[10px] font-semibold px-1.5 py-0.5"
+                              style={{
+                                color: '#000',
+                                background: '#fff',
+                                letterSpacing: '0.12em',
+                              }}
+                            >
+                              CUSTOM
+                            </span>
+                          )}
+                        </div>
+                        <p
+                          className="text-xs text-white/40 mb-2"
+                          style={{ letterSpacing: '0.05em' }}
+                        >
+                          {isWorkoutTab
+                            ? `${item.type} · ${item.duration}`
+                            : `${item.weeks} weeks · ${item.daysPerWeek} days/week`}
+                        </p>
+                        <p className="text-xs text-white/50 leading-relaxed" style={{
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                        }}>
+                          {item.description}
+                        </p>
+                      </div>
+                      <span className="text-white/20 group-hover:text-white/50 transition-colors shrink-0 text-base pt-px">
+                        →
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={onBack}
+            className="mt-10 w-full text-white/25 font-medium text-xs py-3 hover:text-white/50 transition-colors"
+            style={{ letterSpacing: '0.18em' }}
+          >
+            START OVER
+          </button>
+        </div>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // COMPONENTS ▸ CREATOR FORMS  (Workout + Program builders)
+    // Shared input/textarea/select styles
+    // ─────────────────────────────────────────────────────────────
+
+    const creatorInputStyle = {
+      background: 'transparent',
+      border: 'none',
+      borderBottom: '1px solid rgba(255,255,255,0.2)',
+      color: '#fff',
+      fontSize: '15px',
+      padding: '10px 0',
+      width: '100%',
+      outline: 'none',
+      fontFamily: 'inherit',
+    };
+
+    const creatorLabelStyle = { letterSpacing: '0.18em' };
+
+    function CreatorRow({ index, label, detail, onLabelChange, onDetailChange, onRemove, canRemove, labelPlaceholder, detailPlaceholder }) {
+      const num = String(index + 1).padStart(2, '0');
+      return (
+        <div className="flex items-start gap-3 py-2">
+          <span className="text-xs font-mono pt-3 w-5 shrink-0" style={{ color: 'rgba(255,255,255,0.25)' }}>
+            {num}
+          </span>
+          <div className="flex-1 flex flex-col gap-1">
+            <input
+              type="text"
+              placeholder={labelPlaceholder}
+              value={label}
+              onChange={(e) => onLabelChange(e.target.value)}
+              style={{ ...creatorInputStyle, padding: '6px 0', fontSize: 14 }}
+            />
+            <input
+              type="text"
+              placeholder={detailPlaceholder}
+              value={detail}
+              onChange={(e) => onDetailChange(e.target.value)}
+              style={{ ...creatorInputStyle, padding: '6px 0', fontSize: 12, color: 'rgba(255,255,255,0.7)' }}
+            />
+          </div>
+          {canRemove && (
+            <button
+              type="button"
+              onClick={onRemove}
+              aria-label="Remove row"
+              className="text-white/30 hover:text-red-400 transition-colors shrink-0 mt-2"
+              style={{ fontSize: 18, width: 24, height: 24, lineHeight: 1 }}
+            >
+              ×
+            </button>
+          )}
+        </div>
+      );
+    }
+
+    function WorkoutCreatorScreen({ onSave, onCancel, error }) {
+      const [name, setName] = useState('');
+      const [type, setType] = useState('Hypertrophy');
+      const [duration, setDuration] = useState('');
+      const [description, setDescription] = useState('');
+      const [rows, setRows] = useState([{ label: '', detail: '' }, { label: '', detail: '' }, { label: '', detail: '' }]);
+      const [localError, setLocalError] = useState(null);
+
+      const updateRow = (i, key, value) => {
+        setRows(rows.map((r, idx) => idx === i ? { ...r, [key]: value } : r));
+      };
+      const addRow    = () => setRows([...rows, { label: '', detail: '' }]);
+      const removeRow = (i) => setRows(rows.filter((_, idx) => idx !== i));
+
+      const handleSave = () => {
+        if (!name.trim())     { setLocalError('Name is required.'); return; }
+        if (!duration.trim()) { setLocalError('Add an estimated duration (e.g., "~60 min").'); return; }
+        const cleanRows = rows
+          .map((r) => ({ label: r.label.trim(), detail: r.detail.trim() }))
+          .filter((r) => r.label || r.detail);
+        if (cleanRows.length === 0) { setLocalError('Add at least one exercise.'); return; }
+        const schedule = cleanRows.map((r, i) => ({
+          num: String(i + 1).padStart(2, '0'),
+          label: r.label || 'Exercise',
+          detail: r.detail || '',
+        }));
+        setLocalError(null);
+        onSave({
+          name: name.trim(),
+          type,
+          duration: duration.trim(),
+          description: description.trim() || `Custom ${type.toLowerCase()} workout.`,
+          schedule,
+        });
+      };
+
+      return (
+        <div className="screen-enter flex flex-col min-h-screen px-6 pt-16 pb-10">
+          <div className="flex-1">
+            <p className="text-xs text-white/25 font-medium mb-3" style={creatorLabelStyle}>
+              CREATE A WORKOUT
+            </p>
+            <h1 className="text-3xl font-black text-white uppercase leading-tight mb-3">
+              Build your<br />session.
+            </h1>
+            <p className="text-sm text-gray-400 mb-10">
+              Name it, list your exercises, and save. It'll appear in your Workouts tab.
+            </p>
+
+            <div className="flex flex-col gap-7">
+              <div>
+                <label className="text-xs text-white/40 font-medium block mb-2" style={creatorLabelStyle}>
+                  WORKOUT NAME
+                </label>
+                <input
+                  type="text" value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Upper Body Pump"
+                  style={creatorInputStyle}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-white/40 font-medium block mb-2" style={creatorLabelStyle}>
+                  TYPE
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {['Hypertrophy', 'Powerlifting'].map((t) => {
+                    const active = type === t;
+                    return (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setType(t)}
+                        className={`text-sm font-semibold py-3 border transition-colors ${active ? 'bg-white text-black border-white' : 'text-white/70 hover:text-white'}`}
+                        style={!active ? { borderColor: 'rgba(255,255,255,0.15)' } : {}}
+                      >
+                        {t}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs text-white/40 font-medium block mb-2" style={creatorLabelStyle}>
+                  DURATION
+                </label>
+                <input
+                  type="text" value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                  placeholder="~60 min"
+                  style={creatorInputStyle}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-white/40 font-medium block mb-2" style={creatorLabelStyle}>
+                  DESCRIPTION
+                </label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="What's this session for?"
+                  rows={3}
+                  style={{ ...creatorInputStyle, resize: 'vertical', borderBottom: '1px solid rgba(255,255,255,0.2)' }}
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-xs text-white/40 font-medium" style={creatorLabelStyle}>
+                    EXERCISES
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addRow}
+                    className="text-xs text-white font-semibold hover:text-white/80 transition-colors"
+                    style={creatorLabelStyle}
+                  >
+                    + ADD
+                  </button>
+                </div>
+                <div className="flex flex-col">
+                  {rows.map((row, i) => (
+                    <CreatorRow
+                      key={i}
+                      index={i}
+                      label={row.label}
+                      detail={row.detail}
+                      onLabelChange={(v)  => updateRow(i, 'label', v)}
+                      onDetailChange={(v) => updateRow(i, 'detail', v)}
+                      onRemove={() => removeRow(i)}
+                      canRemove={rows.length > 1}
+                      labelPlaceholder="Exercise name (e.g. Bench Press)"
+                      detailPlaceholder="Sets × reps (e.g. 4 × 8-10)"
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {(localError || error) && (
+                <p className="text-xs text-red-400 font-medium">{localError || error}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="pt-8 flex flex-col gap-3">
+            <button
+              onClick={handleSave}
+              className="w-full bg-white text-black font-semibold text-xs py-4 hover:bg-white/90 active:bg-white/80 transition-colors"
+              style={creatorLabelStyle}
+            >
+              SAVE WORKOUT
+            </button>
+            <button
+              onClick={onCancel}
+              className="w-full border border-white/20 text-white/60 font-medium text-xs py-4 hover:border-white/40 hover:text-white/80 transition-colors"
+              style={creatorLabelStyle}
+            >
+              CANCEL
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    function ProgramCreatorScreen({ onSave, onCancel, error }) {
+      const [name, setName] = useState('');
+      const [category, setCategory] = useState('hypertrophy');
+      const [weeks, setWeeks] = useState('4');
+      const [daysPerWeek, setDaysPerWeek] = useState('5');
+      const [description, setDescription] = useState('');
+      const [rows, setRows] = useState(
+        Array.from({ length: 7 }, () => ({ label: '', detail: '' }))
+      );
+      const [localError, setLocalError] = useState(null);
+
+      const updateRow = (i, key, value) => {
+        setRows(rows.map((r, idx) => idx === i ? { ...r, [key]: value } : r));
+      };
+      const addRow    = () => setRows([...rows, { label: '', detail: '' }]);
+      const removeRow = (i) => setRows(rows.filter((_, idx) => idx !== i));
+
+      const handleSave = () => {
+        if (!name.trim()) { setLocalError('Name is required.'); return; }
+        const w = Number(weeks);
+        if (!Number.isFinite(w) || w < 3 || w > 6) {
+          setLocalError('Weeks must be between 3 and 6.'); return;
+        }
+        const d = Number(daysPerWeek);
+        if (!Number.isFinite(d) || d < 1 || d > 7) {
+          setLocalError('Days per week must be between 1 and 7.'); return;
+        }
+        const cleanRows = rows
+          .map((r) => ({ label: r.label.trim(), detail: r.detail.trim() }))
+          .filter((r) => r.label || r.detail);
+        if (cleanRows.length === 0) { setLocalError('Add at least one day.'); return; }
+        const schedule = cleanRows.map((r, i) => ({
+          num: String(i + 1).padStart(2, '0'),
+          label: r.label || 'Day',
+          detail: r.detail || '',
+        }));
+        setLocalError(null);
+        onSave({
+          name: name.trim(),
+          category,
+          weeks: w,
+          daysPerWeek: d,
+          description: description.trim() || `Custom ${category} program.`,
+          schedule,
+        });
+      };
+
+      return (
+        <div className="screen-enter flex flex-col min-h-screen px-6 pt-16 pb-10">
+          <div className="flex-1">
+            <p className="text-xs text-white/25 font-medium mb-3" style={creatorLabelStyle}>
+              CREATE A PROGRAM
+            </p>
+            <h1 className="text-3xl font-black text-white uppercase leading-tight mb-3">
+              Build your<br />plan.
+            </h1>
+            <p className="text-sm text-gray-400 mb-10">
+              A 3–6 week split, structured day by day. It'll appear in the category you pick.
+            </p>
+
+            <div className="flex flex-col gap-7">
+              <div>
+                <label className="text-xs text-white/40 font-medium block mb-2" style={creatorLabelStyle}>
+                  PROGRAM NAME
+                </label>
+                <input
+                  type="text" value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. My PPL Variation"
+                  style={creatorInputStyle}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-white/40 font-medium block mb-2" style={creatorLabelStyle}>
+                  CATEGORY
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: 'hypertrophy',  label: 'Hypertrophy' },
+                    { id: 'powerlifting', label: 'Powerlifting' },
+                  ].map((c) => {
+                    const active = category === c.id;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setCategory(c.id)}
+                        className={`text-sm font-semibold py-3 border transition-colors ${active ? 'bg-white text-black border-white' : 'text-white/70 hover:text-white'}`}
+                        style={!active ? { borderColor: 'rgba(255,255,255,0.15)' } : {}}
+                      >
+                        {c.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-white/40 font-medium block mb-2" style={creatorLabelStyle}>
+                    WEEKS
+                  </label>
+                  <input
+                    type="number" min="3" max="6"
+                    value={weeks}
+                    onChange={(e) => setWeeks(e.target.value)}
+                    style={creatorInputStyle}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-white/40 font-medium block mb-2" style={creatorLabelStyle}>
+                    DAYS / WEEK
+                  </label>
+                  <input
+                    type="number" min="1" max="7"
+                    value={daysPerWeek}
+                    onChange={(e) => setDaysPerWeek(e.target.value)}
+                    style={creatorInputStyle}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs text-white/40 font-medium block mb-2" style={creatorLabelStyle}>
+                  DESCRIPTION
+                </label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="What's this program for?"
+                  rows={3}
+                  style={{ ...creatorInputStyle, resize: 'vertical' }}
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-xs text-white/40 font-medium" style={creatorLabelStyle}>
+                    WEEKLY STRUCTURE
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addRow}
+                    className="text-xs text-white font-semibold hover:text-white/80 transition-colors"
+                    style={creatorLabelStyle}
+                  >
+                    + ADD
+                  </button>
+                </div>
+                <div className="flex flex-col">
+                  {rows.map((row, i) => (
+                    <CreatorRow
+                      key={i}
+                      index={i}
+                      label={row.label}
+                      detail={row.detail}
+                      onLabelChange={(v)  => updateRow(i, 'label', v)}
+                      onDetailChange={(v) => updateRow(i, 'detail', v)}
+                      onRemove={() => removeRow(i)}
+                      canRemove={rows.length > 1}
+                      labelPlaceholder="Day name (e.g. Push)"
+                      detailPlaceholder="Focus or notes (e.g. Chest · Shoulders · Triceps)"
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {(localError || error) && (
+                <p className="text-xs text-red-400 font-medium">{localError || error}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="pt-8 flex flex-col gap-3">
+            <button
+              onClick={handleSave}
+              className="w-full bg-white text-black font-semibold text-xs py-4 hover:bg-white/90 active:bg-white/80 transition-colors"
+              style={creatorLabelStyle}
+            >
+              SAVE PROGRAM
+            </button>
+            <button
+              onClick={onCancel}
+              className="w-full border border-white/20 text-white/60 font-medium text-xs py-4 hover:border-white/40 hover:text-white/80 transition-colors"
+              style={creatorLabelStyle}
+            >
+              CANCEL
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // COMPONENT ▸ REST TIMER  (sticky countdown after marking a set done)
+    // ─────────────────────────────────────────────────────────────
+
+    function RestTimer({ seconds, onSkip, onDone, bottomOffset = 72 }) {
+      const [remaining, setRemaining] = useState(seconds);
+
+      useEffect(() => {
+        setRemaining(seconds);
+      }, [seconds]);
+
+      useEffect(() => {
+        if (remaining <= 0) {
+          if (onDone) onDone();
+          return;
+        }
+        const t = setTimeout(() => setRemaining((r) => r - 1), 1000);
+        return () => clearTimeout(t);
+      }, [remaining]);
+
+      const mins = Math.floor(Math.max(0, remaining) / 60);
+      const secs = Math.max(0, remaining) % 60;
+
+      return (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: bottomOffset,
+            left: 0,
+            right: 0,
+            zIndex: 35,
+            display: 'flex',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: 448,
+              margin: '0 8px',
+              background: 'rgba(255,255,255,0.06)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              padding: '14px 18px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              pointerEvents: 'auto',
+            }}
+          >
+            <div>
+              <p
+                className="text-xs text-white/40 font-medium"
+                style={{ letterSpacing: '0.22em' }}
+              >
+                REST
+              </p>
+              <p
+                className="font-display text-white"
+                style={{ fontSize: 28, fontWeight: 600, letterSpacing: '0.04em', lineHeight: 1 }}
+              >
+                {mins}:{String(secs).padStart(2, '0')}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setRemaining((r) => r + 15)}
+                className="text-xs text-white/60 font-semibold hover:text-white transition-colors"
+                style={{ letterSpacing: '0.18em', padding: '8px 10px', border: '1px solid rgba(255,255,255,0.2)' }}
+              >
+                +15s
+              </button>
+              <button
+                onClick={onSkip}
+                className="text-xs text-white font-semibold hover:text-white/80 transition-colors"
+                style={{ letterSpacing: '0.18em', padding: '8px 14px', background: '#fff', color: '#000' }}
+              >
+                SKIP
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // COMPONENT ▸ ACTIVE WORKOUT  (live session tracking)
+    // ─────────────────────────────────────────────────────────────
+
+    function ActiveWorkoutScreen({ item, prs, onFinish, onCancel }) {
+      const startedAtRef = React.useRef(Date.now());
+
+      // Drop rest days from the schedule when constructing exercise rows
+      const initialExercises = React.useMemo(() => {
+        return (item.schedule || [])
+          .filter((row) => !/^rest$/i.test((row.label || '').trim()))
+          .map((row) => ({
+            name: row.label || 'Exercise',
+            detail: row.detail || '',
+            sets: Array.from({ length: parseSetCount(row.detail) }, () => ({
+              weight: '', reps: '', completed: false,
+            })),
+          }));
+      }, [item]);
+
+      const [exercises, setExercises] = useState(initialExercises);
+      const [restKey, setRestKey] = useState(null); // `${eIdx}-${sIdx}` while resting
+
+      const updateSet = (eIdx, sIdx, key, value) => {
+        setExercises((prev) => prev.map((ex, i) =>
+          i !== eIdx ? ex : {
+            ...ex,
+            sets: ex.sets.map((s, j) => j !== sIdx ? s : { ...s, [key]: value }),
+          }
+        ));
+      };
+
+      const toggleSetComplete = (eIdx, sIdx) => {
+        const ex  = exercises[eIdx];
+        const set = ex.sets[sIdx];
+        const willComplete = !set.completed;
+        // Require both weight and reps before marking complete
+        if (willComplete && (!set.weight || !set.reps)) return;
+
+        setExercises((prev) => prev.map((e, i) =>
+          i !== eIdx ? e : {
+            ...e,
+            sets: e.sets.map((s, j) => j !== sIdx ? s : { ...s, completed: willComplete }),
+          }
+        ));
+
+        if (willComplete) setRestKey(`${eIdx}-${sIdx}-${Date.now()}`);
+        else if (restKey?.startsWith(`${eIdx}-${sIdx}-`)) setRestKey(null);
+      };
+
+      const addSet = (eIdx) => {
+        setExercises((prev) => prev.map((ex, i) =>
+          i !== eIdx ? ex : { ...ex, sets: [...ex.sets, { weight: '', reps: '', completed: false }] }
+        ));
+      };
+
+      const removeSet = (eIdx, sIdx) => {
+        setExercises((prev) => prev.map((ex, i) =>
+          i !== eIdx ? ex : { ...ex, sets: ex.sets.filter((_, j) => j !== sIdx) }
+        ));
+      };
+
+      const totalCompleted = exercises.reduce((sum, ex) =>
+        sum + ex.sets.filter((s) => s.completed).length, 0);
+      const totalExercises = exercises.length;
+      const exercisesTouched = exercises.filter((ex) => ex.sets.some((s) => s.completed)).length;
+
+      const handleFinish = () => {
+        const session = {
+          id: `session-${Date.now()}`,
+          itemId:    item.id,
+          itemName:  item.name,
+          itemType:  item.weeks ? 'program' : 'workout',
+          startedAt: startedAtRef.current,
+          exercises: exercises
+            .map((ex) => ({
+              name: ex.name,
+              sets: ex.sets
+                .filter((s) => s.completed && s.weight && s.reps)
+                .map((s) => ({
+                  weight: Number(s.weight),
+                  reps:   Number(s.reps),
+                })),
+            }))
+            .filter((ex) => ex.sets.length > 0),
+        };
+        onFinish(session);
+      };
+
+      const inputStyle = {
+        background: 'transparent',
+        border: 'none',
+        borderBottom: '1px solid rgba(255,255,255,0.2)',
+        color: '#fff',
+        fontSize: 15,
+        padding: '6px 0',
+        width: '100%',
+        outline: 'none',
+        textAlign: 'center',
+        fontFamily: 'inherit',
+      };
+
+      return (
+        <div className="screen-enter flex flex-col min-h-screen px-6 pt-16 pb-24">
+          <div className="flex-1">
+            <p
+              className="text-xs text-white/25 font-medium mb-3"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              ACTIVE SESSION
+            </p>
+            <h1 className="text-2xl font-black text-white uppercase leading-tight mb-2">
+              {item.name}
+            </h1>
+            <p className="text-xs text-white/40 mb-8">
+              {exercisesTouched} of {totalExercises} exercises · {totalCompleted} sets done
+            </p>
+
+            <div className="flex flex-col gap-7">
+              {exercises.map((ex, eIdx) => {
+                const pr = prs?.[ex.name];
+                return (
+                  <div key={eIdx}>
+                    <div className="flex items-baseline justify-between gap-3 mb-1">
+                      <p className="text-sm font-bold text-white uppercase tracking-wide">
+                        {ex.name}
+                      </p>
+                      {pr && (
+                        <p className="text-[10px] text-white/40 font-medium" style={{ letterSpacing: '0.06em' }}>
+                          PR · {pr.weight}×{pr.reps}
+                        </p>
+                      )}
+                    </div>
+                    <p className="text-xs text-white/35 mb-3">{ex.detail}</p>
+
+                    {/* Header row */}
+                    <div
+                      className="grid items-center gap-2 mb-1"
+                      style={{ gridTemplateColumns: '24px 1fr 1fr 36px 28px' }}
+                    >
+                      <span className="text-[10px] text-white/30 font-semibold" style={{ letterSpacing: '0.08em' }}>SET</span>
+                      <span className="text-[10px] text-white/30 font-semibold text-center" style={{ letterSpacing: '0.08em' }}>WEIGHT</span>
+                      <span className="text-[10px] text-white/30 font-semibold text-center" style={{ letterSpacing: '0.08em' }}>REPS</span>
+                      <span />
+                      <span />
+                    </div>
+
+                    {ex.sets.map((s, sIdx) => (
+                      <div
+                        key={sIdx}
+                        className="grid items-center gap-2 py-1"
+                        style={{
+                          gridTemplateColumns: '24px 1fr 1fr 36px 28px',
+                          opacity: s.completed ? 1 : 0.95,
+                        }}
+                      >
+                        <span className="text-xs font-mono text-white/40">{sIdx + 1}</span>
+                        <input
+                          type="number" inputMode="decimal"
+                          value={s.weight}
+                          onChange={(e) => updateSet(eIdx, sIdx, 'weight', e.target.value)}
+                          disabled={s.completed}
+                          placeholder="lbs"
+                          style={{
+                            ...inputStyle,
+                            borderBottomColor: s.completed ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.2)',
+                            color: s.completed ? '#fff' : '#fff',
+                          }}
+                        />
+                        <input
+                          type="number" inputMode="numeric"
+                          value={s.reps}
+                          onChange={(e) => updateSet(eIdx, sIdx, 'reps', e.target.value)}
+                          disabled={s.completed}
+                          placeholder="reps"
+                          style={{
+                            ...inputStyle,
+                            borderBottomColor: s.completed ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.2)',
+                          }}
+                        />
+                        <button
+                          onClick={() => toggleSetComplete(eIdx, sIdx)}
+                          aria-label={s.completed ? 'Mark set incomplete' : 'Mark set complete'}
+                          style={{
+                            width: 32, height: 32,
+                            border: '1px solid rgba(255,255,255,0.25)',
+                            background: s.completed ? '#fff' : 'transparent',
+                            color: s.completed ? '#000' : 'rgba(255,255,255,0.5)',
+                            fontSize: 14,
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          ✓
+                        </button>
+                        {ex.sets.length > 1 ? (
+                          <button
+                            onClick={() => removeSet(eIdx, sIdx)}
+                            aria-label="Remove set"
+                            className="text-white/25 hover:text-red-400 transition-colors"
+                            style={{ fontSize: 16, lineHeight: 1, background: 'transparent', border: 'none', cursor: 'pointer' }}
+                          >
+                            ×
+                          </button>
+                        ) : <span />}
+                      </div>
+                    ))}
+
+                    <button
+                      onClick={() => addSet(eIdx)}
+                      className="text-xs text-white/50 font-semibold hover:text-white transition-colors mt-2"
+                      style={{ letterSpacing: '0.18em' }}
+                    >
+                      + ADD SET
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Sticky rest timer banner */}
+          {restKey && (
+            <RestTimer
+              key={restKey}
+              seconds={DEFAULT_REST_SECONDS}
+              onSkip={() => setRestKey(null)}
+              onDone={() => setRestKey(null)}
+            />
+          )}
+
+          <div className="pt-8 flex flex-col gap-3">
+            <button
+              onClick={handleFinish}
+              disabled={totalCompleted === 0}
+              className={`w-full font-semibold text-xs py-4 transition-colors ${
+                totalCompleted === 0
+                  ? 'bg-white/10 text-white/30 cursor-not-allowed'
+                  : 'bg-white text-black hover:bg-white/90 cursor-pointer'
+              }`}
+              style={{ letterSpacing: '0.18em' }}
+            >
+              FINISH WORKOUT
+            </button>
+            <button
+              onClick={onCancel}
+              className="w-full text-white/35 font-medium text-xs py-3 hover:text-white/60 transition-colors"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              CANCEL
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // COMPONENT ▸ WORKOUT SUMMARY  (post-session recap + PR display)
+    // ─────────────────────────────────────────────────────────────
+
+    function WorkoutSummaryScreen({ session, newPRs, onDone }) {
+      const elapsedMin = Math.max(1, Math.round((session.completedAt - session.startedAt) / 60000));
+      const totalSets   = session.exercises.reduce((s, ex) => s + ex.sets.length, 0);
+      const totalVolume = session.exercises.reduce((sum, ex) =>
+        sum + ex.sets.reduce((s, set) => s + set.weight * set.reps, 0), 0);
+
+      return (
+        <div className="screen-enter flex flex-col min-h-screen px-6 pt-16 pb-10">
+          <div className="flex-1">
+            <p className="text-xs text-white/25 font-medium mb-3" style={{ letterSpacing: '0.18em' }}>
+              SESSION COMPLETE
+            </p>
+            <h1 className="text-3xl font-black text-white uppercase leading-tight mb-2">
+              {session.itemName}
+            </h1>
+            <p className="text-sm text-white/45 mb-10">
+              Logged and saved to your history.
+            </p>
+
+            {/* Stats */}
+            <div
+              className="grid grid-cols-3 gap-px mb-10"
+              style={{ background: 'rgba(255,255,255,0.08)' }}
+            >
+              {[
+                ['EXERCISES', session.exercises.length],
+                ['SETS',      totalSets],
+                ['MINUTES',   elapsedMin],
+              ].map(([label, val]) => (
+                <div key={label} className="bg-black p-4">
+                  <p
+                    className="text-[10px] text-white/35 font-medium mb-1"
+                    style={{ letterSpacing: '0.18em' }}
+                  >
+                    {label}
+                  </p>
+                  <p className="text-2xl font-black text-white">{val}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Volume */}
+            <div className="mb-10">
+              <p className="text-[10px] text-white/35 font-medium mb-1" style={{ letterSpacing: '0.22em' }}>
+                TOTAL VOLUME
+              </p>
+              <p className="text-2xl font-black text-white">
+                {totalVolume.toLocaleString()} <span className="text-base text-white/40 font-medium">lbs</span>
+              </p>
+            </div>
+
+            {/* PRs */}
+            {newPRs && newPRs.length > 0 && (
+              <div className="mb-10">
+                <p
+                  className="text-xs text-white font-bold mb-4"
+                  style={{ letterSpacing: '0.22em' }}
+                >
+                  ★ NEW PERSONAL RECORDS
+                </p>
+                <div className="flex flex-col gap-3">
+                  {newPRs.map((pr, i) => (
+                    <div
+                      key={i}
+                      className="p-4"
+                      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)' }}
+                    >
+                      <p className="text-sm font-bold text-white uppercase tracking-wide mb-1">
+                        {pr.exercise}
+                      </p>
+                      <p className="text-xs text-white/60">
+                        {pr.weight} lbs × {pr.reps} reps · est. 1RM <span className="text-white font-semibold">{pr.e1RM}</span>
+                        {pr.previousE1RM > 0 && (
+                          <span className="text-white/35"> (was {pr.previousE1RM})</span>
+                        )}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={onDone}
+            className="w-full bg-white text-black font-semibold text-xs py-4 hover:bg-white/90 transition-colors"
+            style={{ letterSpacing: '0.18em' }}
+          >
+            DONE
+          </button>
+        </div>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // COMPONENT ▸ BUILDER ITEM DETAIL  (programs and workouts share layout)
+    // ─────────────────────────────────────────────────────────────
+
+    function BuilderItemDetailScreen({ item, onBack, onReset, onStart }) {
+      const isWorkout = !item.weeks;
+      const meta = isWorkout
+        ? `${item.type} · ${item.duration}`
+        : `${item.weeks} weeks · ${item.daysPerWeek} days/week`;
+      const sectionLabel = isWorkout ? 'WORKOUT STRUCTURE' : 'WEEKLY STRUCTURE';
+
+      return (
+        <div className="screen-enter flex flex-col min-h-screen px-6 pt-16 pb-10">
+          <div className="flex-1">
+            <p
+              className="text-xs text-white/25 font-medium mb-3"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              THE BUILDER
+            </p>
+            <h1 className="text-3xl font-black text-white uppercase leading-tight mb-3">
+              {item.name}
+            </h1>
+            <p
+              className="text-xs text-white/45 font-medium mb-6"
+              style={{ letterSpacing: '0.08em' }}
+            >
+              {meta}
+            </p>
+            <p className="text-sm text-white/55 leading-relaxed mb-12">
+              {item.description}
+            </p>
+
+            <p
+              className="text-xs text-white/25 font-medium mb-6"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              {sectionLabel}
+            </p>
+
+            <div className="flex flex-col">
+              {item.schedule.map((row, i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-5 py-4"
+                  style={{
+                    borderBottom: i < item.schedule.length - 1
+                      ? '1px solid rgba(255,255,255,0.07)'
+                      : 'none',
+                  }}
+                >
+                  <span className="text-xs font-mono pt-px w-5 shrink-0" style={{ color: 'rgba(255,255,255,0.18)' }}>
+                    {row.num}
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-white leading-none mb-1">
+                      {row.label}
+                    </p>
+                    <p className="text-xs text-white/40">
+                      {row.detail}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="pt-10 flex flex-col gap-3">
+            <button
+              onClick={() => onStart && onStart(item)}
+              className="w-full bg-white text-black font-semibold text-xs py-4 px-6 hover:bg-white/90 active:bg-white/80 transition-colors"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              {isWorkout ? 'START WORKOUT' : 'START PROGRAM'}
+            </button>
+            <button
+              onClick={onBack}
+              className="w-full border border-white/20 text-white/60 font-medium text-xs py-4 px-6 hover:border-white/40 hover:text-white/80 transition-colors"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              BACK TO MENU
+            </button>
+            <button
+              onClick={onReset}
+              className="w-full text-white/25 font-medium text-xs py-3 hover:text-white/50 transition-colors"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              START OVER
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // COMPONENT ▸ DAILY SPORT SCREEN  (multi-sport athletes pick today's focus)
+    // ─────────────────────────────────────────────────────────────
+
+    function DailySportScreen({ sports, onPick }) {
+      return (
+        <div className="screen-enter flex flex-col min-h-screen px-6 pt-16 pb-10">
+          <div className="flex-1">
+            <p
+              className="text-xs text-white/25 font-medium mb-5"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              TODAY'S FOCUS
+            </p>
+            <h2 className="text-3xl font-black text-white uppercase leading-tight mb-3">
+              Which sport are<br />you training<br />for today?
+            </h2>
+            <p className="text-sm text-gray-400 mb-10">
+              Pick the one you'll focus on for this session. You can switch any time.
+            </p>
+
+            <div className="flex flex-col gap-3">
+              {sports.map((sport) => (
+                <button
+                  key={sport}
+                  onClick={() => onPick(sport)}
+                  className="answer-card w-full text-left px-5 py-5 border hover:border-white/40 group transition-colors"
+                  style={{ borderColor: 'rgba(255,255,255,0.15)' }}
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="text-sm font-bold text-white uppercase tracking-wide">
+                      {sport}
+                    </p>
+                    <span className="text-white/20 group-hover:text-white/50 transition-colors shrink-0 text-base">
+                      →
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
     // COMPONENT ▸ PROGRAM SCREEN
     // ─────────────────────────────────────────────────────────────
 
-    function ProgramScreen({ laneKey, onReset }) {
+    function ProgramScreen({ laneKey, activeSport, hasMultipleSports, onReset, onSwitchSport }) {
       const lane    = LANES[laneKey];
       const program = PROGRAMS[laneKey];
+
+      // Personalize Competitor program copy for today's active sport
+      let title = program.title;
+      let description = program.description;
+      let sportLabel = null;
+
+      if (laneKey === 'Competitor' && activeSport) {
+        const sportName = activeSport === 'Other' ? 'your sport' : activeSport;
+        title = activeSport === 'Other'
+          ? 'Sport Performance Program'
+          : `${activeSport} Performance Program`;
+        description = `A 6-day performance program built around ${sportName} — sport practice, speed and power development, and competition prep.`;
+        sportLabel = activeSport;
+      }
 
       return (
         <div className="screen-enter flex flex-col min-h-screen px-6 pt-16 pb-10">
@@ -609,11 +4111,28 @@
               {lane.label.toUpperCase()}
             </p>
             <h1 className="text-3xl font-black text-white uppercase leading-tight mb-4">
-              {program.title}
+              {title}
             </h1>
             <p className="text-sm text-white/45 leading-relaxed mb-12">
-              {program.description}
+              {description}
             </p>
+
+            {sportLabel && (
+              <div
+                className="border p-4 mb-12"
+                style={{ borderColor: 'rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)' }}
+              >
+                <p
+                  className="text-xs text-white/25 font-medium mb-1"
+                  style={{ letterSpacing: '0.15em' }}
+                >
+                  TRAINING FOR
+                </p>
+                <p className="text-white font-semibold text-sm">
+                  {sportLabel}
+                </p>
+              </div>
+            )}
 
             {/* Weekly structure */}
             <p
@@ -658,6 +4177,15 @@
             >
               START TODAY
             </button>
+            {hasMultipleSports && (
+              <button
+                onClick={onSwitchSport}
+                className="w-full border border-white/20 text-white/60 font-medium text-xs py-4 px-6 hover:border-white/40 hover:text-white/80 transition-colors"
+                style={{ letterSpacing: '0.18em' }}
+              >
+                SWITCH SPORT
+              </button>
+            )}
             <button
               onClick={onReset}
               className="w-full text-white/25 font-medium text-xs py-3 hover:text-white/50 transition-colors"
@@ -678,12 +4206,44 @@
       const [screen,    setScreen]    = useState('splash');
       const [primary,   setPrimary]   = useState(null);
       const [secondary, setSecondary] = useState(null);
-      const [activeLane, setActiveLane] = useState(null);
+      const [activeLane,         setActiveLane]         = useState(null);
+      const [sports,             setSports]             = useState([]);
+      const [activeSport,        setActiveSport]        = useState(null);
+      const [builderItemId,      setBuilderItemId]      = useState(null);
+      const [currentUser,        setCurrentUser]        = useState(null);
+      const [authError,          setAuthError]          = useState(null);
+      const [activeWorkoutItem,  setActiveWorkoutItem]  = useState(null);
+      const [lastSession,        setLastSession]        = useState(null);
+      const [lastSessionPRs,     setLastSessionPRs]     = useState([]);
 
       // Remove loading overlay once React is running
       useEffect(() => {
         const el = document.getElementById('loading');
         if (el) el.style.display = 'none';
+        // Restore session if exists
+        const email = AUTH.currentEmail();
+        if (email) setCurrentUser(email);
+      }, []);
+
+      // Auto-persist results whenever state changes for a logged-in user
+      useEffect(() => {
+        if (!currentUser) return;
+        if (!primary && !activeLane) return;
+        AUTH.saveResults(currentUser, {
+          primary, secondary, activeLane, sports, activeSport, builderItemId,
+        });
+      }, [currentUser, primary, secondary, activeLane, sports, activeSport, builderItemId]);
+
+      // Route to the right next screen based on lane
+      const enterProgram = useCallback((laneKey) => {
+        setActiveLane(laneKey);
+        if (laneKey === 'Competitor') {
+          setScreen('sportSelect');
+        } else if (laneKey === 'Builder') {
+          setScreen('builderMenu');
+        } else {
+          setScreen('program');
+        }
       }, []);
 
       const handleQuizComplete = useCallback((answers) => {
@@ -694,26 +4254,286 @@
       }, []);
 
       const handleResultsContinue = useCallback(() => {
-        setActiveLane(primary);
-        setScreen('program');
-      }, [primary]);
+        // If not logged in, gate program behind account creation
+        if (!currentUser) {
+          setAuthError(null);
+          setScreen('signup');
+          return;
+        }
+        enterProgram(primary);
+      }, [primary, enterProgram, currentUser]);
+
+      const handleSignup = useCallback((payload) => {
+        const res = AUTH.signup(payload);
+        if (res.error) { setAuthError(res.error); return; }
+        setAuthError(null);
+        setCurrentUser(res.email);
+
+        // Resume wherever the user was headed before the auth gate
+        if (activeLane === 'Competitor') {
+          setScreen('sportSelect');
+        } else if (activeLane === 'Builder') {
+          setScreen('builderMenu');
+        } else if (activeLane) {
+          setScreen('program');
+        } else if (primary) {
+          enterProgram(primary);
+        } else {
+          setScreen('welcome');
+        }
+      }, [primary, activeLane, enterProgram]);
+
+      const handleLogin = useCallback(({ email, password }) => {
+        const res = AUTH.login(email, password);
+        if (res.error) { setAuthError(res.error); return; }
+        setAuthError(null);
+        setCurrentUser(res.email);
+
+        // Restore prior session if it exists
+        const r = res.results;
+        if (r && r.activeLane) {
+          if (r.primary)        setPrimary(r.primary);
+          if (r.secondary)      setSecondary(r.secondary);
+          setActiveLane(r.activeLane);
+          if (r.sports)         setSports(r.sports);
+          if (r.activeSport)    setActiveSport(r.activeSport);
+          if (r.builderItemId)  setBuilderItemId(r.builderItemId);
+
+          // Take user back to the right screen for their lane
+          if (r.activeLane === 'Builder') {
+            setScreen(r.builderItemId ? 'builderDetail' : 'builderMenu');
+          } else {
+            setScreen('program');
+          }
+        } else {
+          setScreen('welcome');
+        }
+      }, []);
+
+      const handleLogout = useCallback(() => {
+        AUTH.logout();
+        setCurrentUser(null);
+        setPrimary(null);
+        setSecondary(null);
+        setActiveLane(null);
+        setSports([]);
+        setActiveSport(null);
+        setScreen('splash');
+      }, []);
 
       const handleLaneSelect = useCallback((key) => {
+        // Remember which lane was picked even if we detour through signup
         setActiveLane(key);
+        if (!currentUser) {
+          setAuthError(null);
+          setScreen('signup');
+          return;
+        }
+        // Already logged in — proceed to the right next screen for this lane
+        if (key === 'Competitor')      setScreen('sportSelect');
+        else if (key === 'Builder')    setScreen('builderMenu');
+        else                           setScreen('program');
+      }, [currentUser]);
+
+      const handleSportsContinue = useCallback((picked) => {
+        setSports(picked);
+        if (picked.length === 1) {
+          setActiveSport(picked[0]);
+          setScreen('program');
+        } else {
+          setActiveSport(null);
+          setScreen('dailySport');
+        }
+      }, []);
+
+      const handleDailySportPick = useCallback((sport) => {
+        setActiveSport(sport);
         setScreen('program');
       }, []);
+
+      const handleSwitchSport = useCallback(() => {
+        setScreen('dailySport');
+      }, []);
+
+      const handleBuilderSelect = useCallback((item) => {
+        setBuilderItemId(item.id);
+        setScreen('builderDetail');
+      }, []);
+
+      const handleBuilderBackToMenu = useCallback(() => {
+        setBuilderItemId(null);
+        setScreen('builderMenu');
+      }, []);
+
+      const handleCreateWorkout = useCallback(() => {
+        setScreen('workoutCreator');
+      }, []);
+
+      const handleCreateProgram = useCallback(() => {
+        setScreen('programCreator');
+      }, []);
+
+      const handleSaveCustomWorkout = useCallback((workout) => {
+        if (!currentUser) return;
+        const res = AUTH.addCustomWorkout(currentUser, workout);
+        if (res.error) return;
+        // Open the new workout's detail screen
+        setBuilderItemId(res.item.id);
+        setScreen('builderDetail');
+      }, [currentUser]);
+
+      const handleSaveCustomProgram = useCallback((program) => {
+        if (!currentUser) return;
+        const res = AUTH.addCustomProgram(currentUser, program);
+        if (res.error) return;
+        setBuilderItemId(res.item.id);
+        setScreen('builderDetail');
+      }, [currentUser]);
+
+      const handleCancelCreator = useCallback(() => {
+        setScreen('builderMenu');
+      }, []);
+
+      // ─── Workout tracking handlers ──────────────────────────────
+      const handleStartWorkout = useCallback((item) => {
+        if (!item) return;
+        setActiveWorkoutItem(item);
+        setScreen('activeWorkout');
+      }, []);
+
+      const handleFinishWorkout = useCallback((session) => {
+        if (!currentUser) {
+          setActiveWorkoutItem(null);
+          setScreen('builderDetail');
+          return;
+        }
+        const res = AUTH.saveWorkoutSession(currentUser, session);
+        if (res.error) return;
+        setLastSession(res.session);
+        setLastSessionPRs(res.newPRs || []);
+        setActiveWorkoutItem(null);
+        setScreen('workoutSummary');
+      }, [currentUser]);
+
+      const handleCancelWorkout = useCallback(() => {
+        if (!window.confirm('End this workout without saving? Your sets will be discarded.')) return;
+        setActiveWorkoutItem(null);
+        setScreen('builderDetail');
+      }, []);
+
+      const handleSummaryDone = useCallback(() => {
+        setLastSession(null);
+        setLastSessionPRs([]);
+        setScreen(builderItemId ? 'builderDetail' : 'builderMenu');
+      }, [builderItemId]);
+
+      // Resolve a builder item id from either built-in catalogs or the user's customs
+      const resolveBuilderItem = (id) => {
+        if (!id) return null;
+        const builtin = findBuilderItem(id);
+        if (builtin) return builtin;
+        if (!currentUser) return null;
+        const cw = AUTH.getCustomWorkouts(currentUser);
+        const cp = AUTH.getCustomPrograms(currentUser);
+        return cw.find((w) => w.id === id)
+            || (cp.hypertrophy || []).find((p) => p.id === id)
+            || (cp.powerlifting || []).find((p) => p.id === id)
+            || null;
+      };
 
       const handleReset = useCallback(() => {
         setPrimary(null);
         setSecondary(null);
         setActiveLane(null);
+        setSports([]);
+        setActiveSport(null);
+        setBuilderItemId(null);
         setScreen('splash');
       }, []);
 
+      const userData = currentUser ? AUTH.getUser(currentUser) : null;
+
+      // Pre-auth / onboarding screens that should NOT show the bottom nav
+      const PRE_AUTH_SCREENS = ['splash', 'welcome', 'quiz', 'results', 'login', 'signup'];
+      const showBottomNav = !!currentUser && !PRE_AUTH_SCREENS.includes(screen);
+
+      // Map a given screen to its parent tab (drives the active highlight in the nav)
+      const screenToTab = (s) => {
+        if (s === 'nutrition') return 'nutrition';
+        if (s === 'community') return 'community';
+        if (s === 'me')        return 'me';
+        return 'training';
+      };
+
+      // Resolve where the Training tab should land based on the user's current state
+      const resolveTrainingScreen = () => {
+        if (!activeLane) return 'welcome';
+        if (activeLane === 'Builder') {
+          return builderItemId ? 'builderDetail' : 'builderMenu';
+        }
+        if (activeLane === 'Competitor') {
+          if (activeSport) return 'program';
+          if (sports.length > 1) return 'dailySport';
+          if (sports.length === 1) { return 'program'; }
+          return 'sportSelect';
+        }
+        return 'program';
+      };
+
+      const handleTabChange = (tab) => {
+        if (tab === 'training')      setScreen(resolveTrainingScreen());
+        else if (tab === 'nutrition') setScreen('nutrition');
+        else if (tab === 'community') setScreen('community');
+        else if (tab === 'me')        setScreen('me');
+      };
+
+      const handleAvatarTap = () => {
+        setScreen('me');
+      };
+
       return (
-        <div className="bg-black min-h-screen" style={{ maxWidth: '448px', marginLeft: 'auto', marginRight: 'auto' }}>
+        <div
+          className="bg-black min-h-screen relative"
+          style={{
+            maxWidth: '448px',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            paddingBottom: showBottomNav ? 72 : 0,
+          }}
+        >
           {screen === 'splash' && (
-            <SplashScreen onContinue={() => setScreen('welcome')} />
+            <SplashScreen
+              onGetStarted={() => setScreen('welcome')}
+              onLogin={() => { setAuthError(null); setScreen('login'); }}
+            />
+          )}
+          {screen === 'login' && (
+            <LoginScreen
+              error={authError}
+              onSubmit={handleLogin}
+              onSwitch={() => { setAuthError(null); setScreen('signup'); }}
+              onBack={() => { setAuthError(null); setScreen('splash'); }}
+            />
+          )}
+          {screen === 'signup' && (
+            <SignupScreen
+              error={authError}
+              onSubmit={handleSignup}
+              onSwitch={() => { setAuthError(null); setScreen('login'); }}
+              onBack={() => { setAuthError(null); setScreen(primary ? 'results' : 'splash'); }}
+            />
+          )}
+          {screen === 'me' && currentUser && (
+            <SettingsScreen
+              email={currentUser}
+              onLogout={handleLogout}
+            />
+          )}
+          {screen === 'nutrition' && (
+            <NutritionScreen />
+          )}
+          {screen === 'community' && (
+            <CommunityScreen />
           )}
           {screen === 'welcome' && (
             <WelcomeScreen
@@ -734,8 +4554,75 @@
           {screen === 'select' && (
             <SelectScreen onSelect={handleLaneSelect} />
           )}
+          {screen === 'sportSelect' && (
+            <SportSelectScreen onContinue={handleSportsContinue} />
+          )}
+          {screen === 'dailySport' && (
+            <DailySportScreen sports={sports} onPick={handleDailySportPick} />
+          )}
+          {screen === 'builderMenu' && (
+            <BuilderMenuScreen
+              onSelect={handleBuilderSelect}
+              onBack={handleReset}
+              onCreateWorkout={handleCreateWorkout}
+              onCreateProgram={handleCreateProgram}
+              customWorkouts={currentUser ? AUTH.getCustomWorkouts(currentUser) : []}
+              customPrograms={currentUser ? AUTH.getCustomPrograms(currentUser) : { hypertrophy: [], powerlifting: [] }}
+            />
+          )}
+          {screen === 'builderDetail' && (
+            <BuilderItemDetailScreen
+              item={resolveBuilderItem(builderItemId)}
+              onBack={handleBuilderBackToMenu}
+              onReset={handleReset}
+              onStart={handleStartWorkout}
+            />
+          )}
+          {screen === 'activeWorkout' && activeWorkoutItem && (
+            <ActiveWorkoutScreen
+              item={activeWorkoutItem}
+              prs={currentUser ? AUTH.getPRs(currentUser) : {}}
+              onFinish={handleFinishWorkout}
+              onCancel={handleCancelWorkout}
+            />
+          )}
+          {screen === 'workoutSummary' && lastSession && (
+            <WorkoutSummaryScreen
+              session={lastSession}
+              newPRs={lastSessionPRs}
+              onDone={handleSummaryDone}
+            />
+          )}
+          {screen === 'workoutCreator' && (
+            <WorkoutCreatorScreen
+              onSave={handleSaveCustomWorkout}
+              onCancel={handleCancelCreator}
+            />
+          )}
+          {screen === 'programCreator' && (
+            <ProgramCreatorScreen
+              onSave={handleSaveCustomProgram}
+              onCancel={handleCancelCreator}
+            />
+          )}
           {screen === 'program' && (
-            <ProgramScreen laneKey={activeLane} onReset={handleReset} />
+            <ProgramScreen
+              laneKey={activeLane}
+              activeSport={activeSport}
+              hasMultipleSports={sports.length > 1}
+              onSwitchSport={handleSwitchSport}
+              onReset={handleReset}
+            />
+          )}
+
+          {showBottomNav && (
+            <BottomNav
+              activeTab={screenToTab(screen)}
+              onTabChange={handleTabChange}
+              activeLane={activeLane}
+              activeSport={activeSport}
+              user={userData}
+            />
           )}
         </div>
       );
